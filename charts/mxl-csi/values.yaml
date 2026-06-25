@@ -1,0 +1,66 @@
+nameOverride: ""
+fullnameOverride: ""
+
+driver:
+  name: mxl.csi.k8s.local
+  endpoint: unix:///csi/csi.sock
+  sharedHostPath: /run/mxl/domain
+
+image:
+  repository: your-registry/ti-eng-mxl-k8s-csi
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+controller:
+  replicaCount: 1
+  nodeID: controller
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    name: ""
+  provisioner:
+    image: registry.k8s.io/sig-storage/csi-provisioner
+    tag: v5.1.0
+    pullPolicy: IfNotPresent
+    leaderElection: true
+  livenessProbe:
+    image: registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.15.0
+    pullPolicy: IfNotPresent
+
+node:
+  hostNetwork: true
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    name: ""
+  registrar:
+    image: registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.13.0
+    pullPolicy: IfNotPresent
+  livenessProbe:
+    image: registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.15.0
+    pullPolicy: IfNotPresent
+
+rbac:
+  create: true
+
+csiDriver:
+  create: true
+  attachRequired: false
+  podInfoOnMount: false
+  fsGroupPolicy: None
+  volumeLifecycleModes:
+    - Persistent
+
+storageClass:
+  create: true
+  name: mxl-csi
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: false

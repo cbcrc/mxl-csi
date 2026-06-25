@@ -1,0 +1,14 @@
+{{- if .Values.csiDriver.create }}
+apiVersion: storage.k8s.io/v1
+kind: CSIDriver
+metadata:
+  name: {{ .Values.driver.name }}
+  labels:
+    {{- include "mxl-csi.labels" . | nindent 4 }}
+spec:
+  attachRequired: {{ .Values.csiDriver.attachRequired }}
+  podInfoOnMount: {{ .Values.csiDriver.podInfoOnMount }}
+  fsGroupPolicy: {{ .Values.csiDriver.fsGroupPolicy }}
+  volumeLifecycleModes:
+    {{- toYaml .Values.csiDriver.volumeLifecycleModes | nindent 4 }}
+{{- end }}
