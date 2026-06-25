@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mxl-csi
+description: CSI driver for MXL shared-host-path volumes
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,46 @@
+driver:
+  name: mxl.csi.k8s.local
+  endpoint: unix:///csi/csi.sock
+  sharedHostPath: /run/mxl/domain
+
+image:
+  repository: your-registry/ti-eng-mxl-k8s-csi
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+controller:
+  replicaCount: 1
+  nodeID: controller
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  affinity: {}
+
+node:
+  hostNetwork: true
+  nodeSelector:
+    kubernetes.io/os: linux
+  tolerations:
+    - operator: Exists
+  affinity: {}
+
+rbac:
+  create: true
+
+csiDriver:
+  create: true
+  attachRequired: false
+  podInfoOnMount: false
+  fsGroupPolicy: None
+  volumeLifecycleModes:
+    - Persistent
+
+storageClass:
+  create: true
+  name: mxl-csi
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: false

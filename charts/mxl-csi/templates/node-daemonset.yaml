@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "mxl-csi.fullname" . }}-node
+  labels:
+    {{- include "mxl-csi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "mxl-csi.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: node
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "mxl-csi.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: node
+    spec:
+      serviceAccountName: {{ include "mxl-csi.nodeServiceAccountName" . }}
+      hostNetwork: {{ .Values.node.hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- with .Values.node.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.node.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.node.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: node-driver-registrar
+          image: {{ .Values.node.registrar.image }}:{{ .Values.node.registrar.tag }}
+          imagePullPolicy: {{ .Values.node.registrar.pullPolicy }}
+          args:
+            - --csi-address=/csi/csi.sock
+            - --kubelet-registration-path=/var/lib/kubelet/plugins/{{ .Values.driver.name }}/csi.sock
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi
+            - name: registration-dir
+              mountPath: /registration
+        - name: liveness-probe
+          image: {{ .Values.node.livenessProbe.image }}:{{ .Values.node.livenessProbe.tag }}
+          imagePullPolicy: {{ .Values.node.livenessProbe.pullPolicy }}
+          args:
+            - --csi-address=/csi/csi.sock
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi
+        - name: driver
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --endpoint={{ .Values.driver.endpoint }}
+            - --node-id=$(KUBE_NODE_NAME)
+            - --driver-name={{ .Values.driver.name }}
+            - --shared-host-path={{ .Values.driver.sharedHostPath }}
+          env:
+            - name: KUBE_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: plugin-dir
+              mountPath: /csi
+            - name: pods-mount-dir
+              mountPath: /var/lib/kubelet/pods
+              mountPropagation: Bidirectional
+            - name: shared-host-path
+              mountPath: {{ .Values.driver.sharedHostPath }}
+      volumes:
+        - name: plugin-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins/{{ .Values.driver.name }}
+            type: DirectoryOrCreate
+        - name: registration-dir
+          hostPath:
+            path: /var/lib/kubelet/plugins_registry
+            type: DirectoryOrCreate
+        - name: pods-mount-dir
+          hostPath:
+            path: /var/lib/kubelet/pods
+            type: Directory
+        - name: shared-host-path
+          hostPath:
+            path: {{ .Values.driver.sharedHostPath }}
+            type: DirectoryOrCreate
