@@ -30,4 +30,4 @@ go.work.sum
 # Editor/IDE
 # .idea/
 .vscode/
-.k3s-env/
+k3s-env/
