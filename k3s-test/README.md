@@ -71,20 +71,9 @@ Validate that:
 
 ## How They Interconnect
 
-```mermaid
-flowchart LR
-  A[Producer pod on source node] -->|writes grains| B[MXL domain source run mxl domain]
-  B --> C[mxl domain agent on source node]
-  C -->|publishes flow origin status| D[MxlFlow CR]
-  E[MxlReceiver CR for consumer pods] --> F[mxl operator receiver reconciler]
-  D --> F
-  F -->|creates mirror intent| G[MxlFlowMirror CR]
-  G --> H[mirror path toward destination node]
-  H --> I[MXL domain destination run mxl domain]
-  I --> J[Consumer pod ffmpeg transcode]
-  J --> K[MediaMTX stream publish]
-  K --> L[VLC RTSP playback nodeIP 30554 stream]
-```
+<p align="center">
+  <img src="mxl-interconnect.svg" alt="MXL k3s test interconnect flow" width="50%" />
+</p>
 
 ## Expected Runtime Sequence
 

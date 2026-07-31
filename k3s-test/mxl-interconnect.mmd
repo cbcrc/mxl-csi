@@ -1,0 +1,13 @@
+%%{init: {"theme": "default", "themeVariables": {"fontSize": "18px"}, "flowchart": {"nodeSpacing": 45, "rankSpacing": 60, "curve": "basis"}} }%%
+flowchart TB
+  A[Producer pod<br/>source node] -->|writes grains| B[MXL domain<br/>source node]
+  B --> C[mxl-domain-agent<br/>source node]
+  C -->|publishes origin status| D[MxlFlow CR]
+  E[MxlReceiver CR<br/>consumer selector] --> F[mxl-operator<br/>receiver reconciler]
+  D --> F
+  F -->|creates mirror intent| G[MxlFlowMirror CR]
+  G --> H[Mirror path to<br/>destination node]
+  H --> I[MXL domain<br/>destination node]
+  I --> J[Consumer pod<br/>FFmpeg transcode]
+  J --> K[MediaMTX<br/>publish stream]
+  K --> L[VLC playback<br/>rtsp nodeIP 30554 stream]
