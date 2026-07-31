@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: mxl-domain-pv
+  name: mxl-domain-pv-1
 spec:
   capacity:
     storage: 1G
@@ -20,4 +20,4 @@ spec:
       - matchExpressions:
         - key: kubernetes.io/hostname
           operator: In
-          values: [mtllppdmh002] 
+          values: [mtllppdmh001] 

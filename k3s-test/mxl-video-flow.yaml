@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: mxl-video-flow-description
-  namespace: mxl-test
+  namespace: qvest-mxl-test
 data:
   flow.json: |
     {

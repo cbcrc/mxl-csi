@@ -2,7 +2,7 @@ apiVersion: mxl.qvest-digital.com/v1alpha1
 kind: MxlReceiver
 metadata:
   name: mxl-video-receiver
-  namespace: mxl-test
+  namespace: qvest-mxl-test
 spec:
   # The UUID of the flow your FFmpeg reader wants to consume
   flowID: "5fbec3b1-1b0f-417d-9059-8b94a47197ed"

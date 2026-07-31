@@ -2,21 +2,30 @@ apiVersion: v1
 kind: ConfigMap 
 metadata: 
   name: mxl-mediamtx-config 
-  namespace: mxl-test 
+  namespace: qvest-mxl-test 
 data: 
   mediamtx.yml: | 
     ############################################### 
     # Global settings
+    paths:
+      # Allow FFmpeg to dynamically publish to any path (e.g. /stream)
+      all_others:
+        source: publisher
 ---
 apiVersion: v1 
 kind: Service 
 metadata: 
   name: mediamtx-service-outside 
-  namespace: mxl-test 
+  namespace: qvest-mxl-test 
 spec: 
   selector: 
     app.kubernetes.io/name: mxl-mediamtx
   ports: 
+    - name: rtsp
+      protocol: TCP
+      port: 8554
+      targetPort: 8554
+      nodePort: 30554
     - protocol: TCP # webRTC 
       port: 8889 # inside 
       targetPort: 8889 # outside
@@ -31,7 +40,7 @@ apiVersion: v1
 kind: Service 
 metadata: 
   name: mediamtx-service-inside # <-- internal domain name used by FFmpeg
-  namespace: mxl-test 
+  namespace: qvest-mxl-test 
 spec: 
   selector: 
     app.kubernetes.io/name: mxl-mediamtx 
@@ -45,7 +54,7 @@ apiVersion: apps/v1
 kind: Deployment 
 metadata: 
   name: mxl-mediamtx 
-  namespace: mxl-test 
+  namespace: qvest-mxl-test 
 spec: 
   replicas: 1 
   strategy:
@@ -73,9 +82,10 @@ spec:
           image: bluenviron/mediamtx:latest 
           env: 
             - name: MTX_RTSPTRANSPORTS 
-              value: tcp 
-          ports: 
+              value: tcp
+            - name: MTX_LOGLEVEL
+              value: debug
+          ports:
+            - containerPort: 8554 # RTSP 
             - containerPort: 8889 # webRTC 
-              hostPort: 8889 
             - containerPort: 9997 # ctrl API 
-              hostPort: 9997

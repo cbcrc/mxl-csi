@@ -1,9 +1,9 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: mxl-domain-volume-lifecycle-controller
+  namespace: qvest-mxl-test
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app.kubernetes.io/name: mxl-domain-lifecycle-controller
@@ -12,8 +12,6 @@ spec:
       labels:
         app.kubernetes.io/name: mxl-domain-lifecycle-controller
     spec:
-      nodeSelector:
-        kubernetes.io/hostname: mtllppdmh002
       volumes:
         - name: run-dbus
           hostPath:
@@ -21,9 +19,11 @@ spec:
         - name: run-systemd
           hostPath:
             path: /run/systemd
-        - name: dev-shm
+        - name: run-mxl
           hostPath:
-            path: /dev/shm
+            path: /run/mxl
+            type: DirectoryOrCreate
+      
       initContainers:
         - name: create-volume
           securityContext:
@@ -36,26 +36,24 @@ spec:
               mountPath: /run/dbus
             - name: run-systemd
               mountPath: /run/systemd
-            - name: dev-shm
-              mountPath: /dev/shm
+            - name: run-mxl
+              mountPath: /run/mxl
           image: docker.io/jonasohland/mxl-shminit:latest
           command:
             - /bin/bash
             - -c
             - |
               set -e
-              if [[ -d "/dev/shm/mxl/example" ]] \
-                && grep -q "/dev/shm/mxl/example" /proc/mounts
-              then
+              # Use systemd-run to guarantee the host namespace is checked
+              if systemd-run -G --wait -q -- /bin/sh -c 'grep -q "/run/mxl/domain" /proc/mounts'; then
                 echo "nothing to do"
                 exit 0
               fi
-
-              mkdir -vp "/dev/shm/mxl/example"
-              echo "mounting tmpfs at /dev/shm/mxl/example"
-              systemd-run -G --wait -q -- mount -t tmpfs -o size=1G,nosuid,nodev,noexec,strictatime tmpfs /dev/shm/mxl/example
-              systemd-run -G --wait -q -- mkdir -v /dev/shm/mxl/example/data
-              systemd-run -G --wait -q -- chown -R 1000:1000 /dev/shm/mxl/example/data
+              echo "Creating directory on host and mounting tmpfs"
+              systemd-run -G --wait -q -- mkdir -vp /run/mxl/domain
+              systemd-run -G --wait -q -- mount -t tmpfs -o size=1G,nosuid,nodev,noexec,strictatime tmpfs /run/mxl/domain
+              systemd-run -G --wait -q -- chown -R 1000:1000 /run/mxl/domain
+      
       containers:
         - name: wait
           securityContext:
@@ -68,30 +66,28 @@ spec:
               mountPath: /run/dbus
             - name: run-systemd
               mountPath: /run/systemd
-            - name: dev-shm
-              mountPath: /dev/shm
+            - name: run-mxl
+              mountPath: /run/mxl
           image: docker.io/jonasohland/mxl-shminit:latest
           command:
             - /bin/bash
             - -c
             - |
               function teardown() {
-                if grep -q "/dev/shm/mxl/example" /proc/mounts; then
-                  echo "attempting to umount /dev/shm/mxl/example"
+                if systemd-run -G --wait -q -- /bin/sh -c 'grep -q "/run/mxl/domain" /proc/mounts'; then
+                  echo "attempting to umount /run/mxl/domain"
                   while true; do
-                    if systemd-run -G --wait -q -- umount "/dev/shm/mxl/example"; then
+                    if systemd-run -G --wait -q -- umount "/run/mxl/domain"; then
                       echo "umount ok"
                       break
                     fi
                     sleep 0.5
                   done
                 fi
-
-                if systemd-run -G --wait -q -- /bin/sh -c "test -d /dev/shm/mxl/example"; then
-                  echo "remove /dev/shm/mxl/example volume mountpoint"
-                  systemd-run -G --wait -q -- rm -r /dev/shm/mxl/example
+                if systemd-run -G --wait -q -- /bin/sh -c "test -d /run/mxl/domain"; then
+                  echo "remove /run/mxl/domain volume mountpoint"
+                  systemd-run -G --wait -q -- rm -r /run/mxl/domain
                 fi
-
                 exit 0
               }
               trap teardown SIGINT SIGTERM

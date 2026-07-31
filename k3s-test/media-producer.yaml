@@ -2,11 +2,20 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: mxl-producer
-  namespace: mxl-test
+  namespace: qvest-mxl-test
 spec:
-  # Pins the pod to the same node as your domain-pv
   nodeSelector:
-    kubernetes.io/hostname: mtllppdmh002
+    kubernetes.io/hostname: mtllppdmh001
+  initContainers:
+  - name: cleanup-zombie-flow
+    image: busybox:latest
+    volumeMounts:
+    - name: mxl-domain
+      mountPath: /run/mxl/domain
+    # Delete the specific flow directory if it exists
+    command: ["/bin/sh", "-c"]
+    args: 
+      - "rm -rf /run/mxl/domain/5fbec3b1-1b0f-417d-9059-8b94a47197ed.mxl-flow || true"
   containers:
   - name: producer
     image: ghcr.io/cbcrc/gst-mxl-rs:latest
@@ -17,18 +26,17 @@ spec:
         - IPC_LOCK
         - SYS_RESOURCE
     volumeMounts:
-    # 1. Mount the shared memory PVC
     - name: mxl-domain
-      mountPath: /home/mxl/domain
-    # 2. Mount the flow configuration
+      mountPath: /run/mxl/domain
     - name: flow-config
       mountPath: /home/mxl/config
-    # 3. Provide the args so the application knows what to run and where
-    args: ["/usr/bin/mxl-gst-testsrc -d domain -v config/flow.json"]
+    # Explicit array with absolute paths 
+    command: ["/bin/bash", "-c"]
+    args: ["/usr/bin/mxl-gst-testsrc -d /run/mxl/domain -v /home/mxl/config/flow.json"]
   volumes:
   - name: mxl-domain
     persistentVolumeClaim:
-      claimName: mxl-domain-pvc
+      claimName: mxl-domain-pvc-1
   - name: flow-config
     configMap:
       name: mxl-video-flow-description
