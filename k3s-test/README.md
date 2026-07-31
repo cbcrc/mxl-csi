@@ -71,7 +71,9 @@ Validate that:
 
 ## How They Interconnect
 
-![MXL k3s test interconnect flow](mxl-interconnect.svg)
+<p align="center">
+  <img src="mxl-interconnect.svg" alt="MXL k3s test interconnect flow" width="50%" />
+</p>
 
 ## Expected Runtime Sequence
 
