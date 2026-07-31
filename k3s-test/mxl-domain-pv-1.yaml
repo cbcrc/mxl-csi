@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mxl-domain-pv-1
+spec:
+  capacity:
+    storage: 1G
+  accessModes:
+    - ReadWriteMany
+  storageClassName: mxl-domain
+  local:
+    path: /run/mxl/domain
+# The local path PV requires node affinity to ensure that the pod is scheduled on the same node where the PV is available. \
+# This is crucial for local storage.
+# We seek to abstract this nodeAffinity definition through the custom csi. \
+# This section will be filled by the csi driver when the PVC is requested, based on where the pod requesting the PVC is scheduled
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: [mtllppdmh001] 

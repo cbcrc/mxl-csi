@@ -44,6 +44,20 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 - **Lightweight Behavior**: Minimal CSI surface, focused on mapping pods to shared mxl tmpfs.
 - **Multi-Platform**: Supports Kubernetes and OpenShift deployments.
 
+## k3s Test Quick Start
+
+For the end-to-end cross-node MXL flow sharing validation scenario (producer -> operator flow/mirror reconciliation -> consumer -> MediaMTX -> VLC), see:
+
+- [k3s-test/README.md](k3s-test/README.md)
+
+That guide includes:
+
+- Manifest-by-manifest explanation
+- Runtime interconnection flow
+- Suggested apply order
+- Verification commands
+- VLC playback settings (RTSP over TCP)
+
 ## Build Images
 
 This repository includes two Dockerfiles:

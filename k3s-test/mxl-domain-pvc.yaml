@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mxl-domain-pvc
+  namespace: qvest-mxl-test
+spec:
+  accessModes:
+    - ReadWriteMany
+  volumeName: mxl-domain-pv
+  storageClassName: mxl-domain
+  resources:
+    requests:
+      storage: 1G

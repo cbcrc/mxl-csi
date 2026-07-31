@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: mxl-domain-volume-lifecycle-controller
+  namespace: qvest-mxl-test
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mxl-domain-lifecycle-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mxl-domain-lifecycle-controller
+    spec:
+      volumes:
+        - name: run-dbus
+          hostPath:
+            path: /run/dbus
+        - name: run-systemd
+          hostPath:
+            path: /run/systemd
+        - name: run-mxl
+          hostPath:
+            path: /run/mxl
+            type: DirectoryOrCreate
+      
+      initContainers:
+        - name: create-volume
+          securityContext:
+            privileged: true
+          env:
+            - name: SYSTEMCTL_FORCE_BUS
+              value: "1"
+          volumeMounts:
+            - name: run-dbus
+              mountPath: /run/dbus
+            - name: run-systemd
+              mountPath: /run/systemd
+            - name: run-mxl
+              mountPath: /run/mxl
+          image: docker.io/jonasohland/mxl-shminit:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              # Use systemd-run to guarantee the host namespace is checked
+              if systemd-run -G --wait -q -- /bin/sh -c 'grep -q "/run/mxl/domain" /proc/mounts'; then
+                echo "nothing to do"
+                exit 0
+              fi
+              echo "Creating directory on host and mounting tmpfs"
+              systemd-run -G --wait -q -- mkdir -vp /run/mxl/domain
+              systemd-run -G --wait -q -- mount -t tmpfs -o size=1G,nosuid,nodev,noexec,strictatime tmpfs /run/mxl/domain
+              systemd-run -G --wait -q -- chown -R 1000:1000 /run/mxl/domain
+      
+      containers:
+        - name: wait
+          securityContext:
+            privileged: true
+          env:
+            - name: SYSTEMCTL_FORCE_BUS
+              value: "1"
+          volumeMounts:
+            - name: run-dbus
+              mountPath: /run/dbus
+            - name: run-systemd
+              mountPath: /run/systemd
+            - name: run-mxl
+              mountPath: /run/mxl
+          image: docker.io/jonasohland/mxl-shminit:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              function teardown() {
+                if systemd-run -G --wait -q -- /bin/sh -c 'grep -q "/run/mxl/domain" /proc/mounts'; then
+                  echo "attempting to umount /run/mxl/domain"
+                  while true; do
+                    if systemd-run -G --wait -q -- umount "/run/mxl/domain"; then
+                      echo "umount ok"
+                      break
+                    fi
+                    sleep 0.5
+                  done
+                fi
+                if systemd-run -G --wait -q -- /bin/sh -c "test -d /run/mxl/domain"; then
+                  echo "remove /run/mxl/domain volume mountpoint"
+                  systemd-run -G --wait -q -- rm -r /run/mxl/domain
+                fi
+                exit 0
+              }
+              trap teardown SIGINT SIGTERM
+              while true; do sleep 1; done
