@@ -17,7 +17,7 @@ This chart deploys the MXL CSI driver in the standard split mode:
 helm upgrade --install mxl-csi ./charts/mxl-csi \
   --namespace kube-system \
   --create-namespace \
-  --set image.repository=<your-registry>/ti-eng-mxl-k8s-csi \
+  --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
   --set image.tag=0.1.0
 ```
 
@@ -27,8 +27,8 @@ helm upgrade --install mxl-csi ./charts/mxl-csi \
 helm upgrade --install mxl-csi ./charts/mxl-csi \
   --namespace kube-system \
   --create-namespace \
-  -f ./charts/mxl-csi/values-prod.yaml \
-  --set image.repository=<your-registry>/ti-eng-mxl-k8s-csi \
+  -f ./charts/mxl-csi/values-preprod.yaml \
+  --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
   --set image.tag=0.1.0
 ```
 
@@ -44,7 +44,7 @@ kubectl get storageclass
 
 ```bash
 --set driver.name=mxl.csi.k8s.local
---set storageClass.name=mxl-csi
+--set storageClass.name=mxl-domain-sc
 --set driver.sharedHostPath=/run/mxl/domain
 ```
 
