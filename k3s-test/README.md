@@ -131,3 +131,30 @@ Note: for NodePort, use any reachable Kubernetes node IP with port `30554`. The 
 ## Notes About Dynamic vs Static Volume Wiring
 
 This test currently uses statically declared local PVs/PVCs for each node. That validates the media/control-plane behavior, while your CSI driver project aims to replace this static wiring with dynamic mount binding to the shared host MXL domain path.
+
+## Migration To CSI StorageClass
+
+When you migrate this test to the CSI workflow (StorageClass provisioner `mxl.csi.k8s.local`), the static local PV wiring is no longer needed.
+
+You can remove these static manifests:
+
+- [mxl-domain-pv.yaml](mxl-domain-pv.yaml)
+- [mxl-domain-pv-1.yaml](mxl-domain-pv-1.yaml)
+
+You should replace these PVC manifests with CSI-based PVCs (no `volumeName`, use the CSI StorageClass name, for example `mxl-domain-sc`):
+
+- [mxl-domain-pvc.yaml](mxl-domain-pvc.yaml)
+- [mxl-domain-pvc-1.yaml](mxl-domain-pvc-1.yaml)
+
+You should keep this manifest (or provide an equivalent host bootstrapping mechanism):
+
+- [mxl-domain-volume-lc-daemonset.yaml](mxl-domain-volume-lc-daemonset.yaml)
+
+Reason: the CSI driver bind-mounts the shared host path into pods, but does not create and mount tmpfs for `/run/mxl/domain` by itself. The lifecycle DaemonSet is what ensures that host path exists as a tmpfs-backed MXL domain on every worker node.
+
+Workload manifests to update for CSI migration:
+
+- [media-producer.yaml](media-producer.yaml)
+- [media-consumer.yaml](media-consumer.yaml)
+
+Only the PVC reference needs to point to CSI-backed claims; the MXL path inside containers remains `/run/mxl/domain`.

@@ -4,9 +4,12 @@ driver:
   sharedHostPath: /run/mxl/domain
 
 image:
-  repository: your-registry/ti-eng-mxl-k8s-csi
+  repository: ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi
   tag: "0.1.0"
   pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ghcr-creds
 
 controller:
   replicaCount: 1
@@ -40,7 +43,7 @@ csiDriver:
 
 storageClass:
   create: true
-  name: mxl-csi
+  name: mxl-domain-sc
   reclaimPolicy: Delete
   volumeBindingMode: WaitForFirstConsumer
   allowVolumeExpansion: false

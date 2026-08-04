@@ -19,6 +19,10 @@ spec:
         app.kubernetes.io/component: node
     spec:
       serviceAccountName: {{ include "mxl-csi.nodeServiceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       hostNetwork: {{ .Values.node.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       {{- with .Values.node.nodeSelector }}

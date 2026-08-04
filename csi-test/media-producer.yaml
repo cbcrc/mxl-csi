@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mxl-producer
+  namespace: mxl-csi-test
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: mtllppdmh001
+  initContainers:
+  - name: cleanup-zombie-flow
+    image: busybox:latest
+    volumeMounts:
+    - name: mxl-domain
+      mountPath: /run/mxl/domain
+    # Delete the specific flow directory if it exists
+    command: ["/bin/sh", "-c"]
+    args: 
+      - "rm -rf /run/mxl/domain/5fbec3b1-1b0f-417d-9059-8b94a47197ed.mxl-flow || true"
+  containers:
+  - name: producer
+    image: ghcr.io/cbcrc/gst-mxl-rs:latest
+    imagePullPolicy: IfNotPresent
+    securityContext:
+      capabilities:
+        add:
+        - IPC_LOCK
+        - SYS_RESOURCE
+    volumeMounts:
+    - name: mxl-domain
+      mountPath: /run/mxl/domain
+    - name: flow-config
+      mountPath: /home/mxl/config
+    # Explicit array with absolute paths 
+    command: ["/bin/bash", "-c"]
+    args: ["/usr/bin/mxl-gst-testsrc -d /run/mxl/domain -v /home/mxl/config/flow.json"]
+  volumes:
+  - name: mxl-domain
+    ephemeral:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteMany"]
+          storageClassName: "mxl-domain-sc"
+          resources:
+            requests:
+              storage: 1Gi
+  - name: flow-config
+    configMap:
+      name: mxl-video-flow-description
