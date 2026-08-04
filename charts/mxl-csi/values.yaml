@@ -11,6 +11,8 @@ image:
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 
+imagePullSecrets: []
+
 controller:
   replicaCount: 1
   nodeID: controller

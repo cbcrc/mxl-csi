@@ -21,7 +21,7 @@ helm upgrade --install mxl-csi ./charts/mxl-csi \
   --set image.tag=0.1.0
 ```
 
-## Install with production values
+## Install with pre-prod values
 
 ```bash
 helm upgrade --install mxl-csi ./charts/mxl-csi \
