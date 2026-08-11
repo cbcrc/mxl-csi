@@ -26,6 +26,14 @@ The GitHub Enterprise token should have permission to pull images from ghcr.io/c
 
 ## Install
 
+1. Create the MXL domain lifecycle bootstrap DaemonSet first:
+
+```bash
+kubectl apply -f ./bootstrap/mxl-domain-volume-lc-daemonset.yaml
+```
+
+2. Install the Helm chart:
+
 ```bash
 helm upgrade --install mxl-csi ./charts/mxl-csi \
   --namespace kube-system \
