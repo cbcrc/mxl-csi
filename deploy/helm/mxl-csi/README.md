@@ -26,16 +26,18 @@ The GitHub Enterprise token should have permission to pull images from ghcr.io/c
 
 ## Install
 
+Run the following commands from the repository root.
+
 1. Create the MXL domain lifecycle bootstrap DaemonSet first:
 
 ```bash
-kubectl apply -f ./bootstrap/mxl-domain-volume-lc-daemonset.yaml
+kubectl apply -f ./deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml
 ```
 
 2. Install the Helm chart:
 
 ```bash
-helm upgrade --install mxl-csi ./charts/mxl-csi \
+helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
   --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
@@ -45,10 +47,10 @@ helm upgrade --install mxl-csi ./charts/mxl-csi \
 ## Install with pre-prod values
 
 ```bash
-helm upgrade --install mxl-csi ./charts/mxl-csi \
+helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
-  -f ./charts/mxl-csi/values-preprod.yaml \
+  -f ./deploy/helm/mxl-csi/values-preprod.yaml \
   --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
   --set image.tag=0.1.0
 ```
@@ -87,7 +89,7 @@ node:
 
 ## CI packaging and publishing
 
-This repository includes [../../.github/workflows/helm-chart.yml](../../.github/workflows/helm-chart.yml), which:
+This repository includes [../../../.github/workflows/helm-chart.yml](../../../.github/workflows/helm-chart.yml), which:
 
 - lints the chart
 - packages it into a .tgz artifact

@@ -17,7 +17,7 @@ Use the following command to install `rc.20` of the Qvest `mxl-k8s` operator:
 helm upgrade --install mxl oci://ghcr.io/qvest-digital/mxl-k8s/charts/mxl-k8s \
   --version 1.0.0-rc.20 \
   --namespace mxl-system \
-  -f mxl-k8s-values.yaml
+  -f deploy/patches/mxl-k8s-rc.20-patches/mxl-k8s-values.yaml
 ```
 
 ## Values override used at install time
@@ -36,7 +36,7 @@ The `mxl-k8s-operator-rbac.yaml` manifest provides the `Role` and `RoleBinding` 
 Apply it with:
 
 ```bash
-kubectl apply -f mxl-k8s-rc.20-patches/mxl-k8s-operator-rbac.yaml
+kubectl apply -f deploy/patches/mxl-k8s-rc.20-patches/mxl-k8s-operator-rbac.yaml
 ```
 
 ## Gateway and agent patches
@@ -46,6 +46,6 @@ The `gateway-patch.yaml` and `agent-patch.yaml` manifests contain the gateway an
 Apply both patches with `kubectl apply -f`:
 
 ```bash
-kubectl apply -f mxl-k8s-rc.20-patches/gateway-patch.yaml
-kubectl apply -f mxl-k8s-rc.20-patches/agent-patch.yaml
+kubectl apply -f deploy/patches/mxl-k8s-rc.20-patches/gateway-patch.yaml
+kubectl apply -f deploy/patches/mxl-k8s-rc.20-patches/agent-patch.yaml
 ```
