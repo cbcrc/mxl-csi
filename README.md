@@ -44,13 +44,35 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 - **Lightweight Behavior**: Minimal CSI surface, focused on mapping pods to shared mxl tmpfs.
 - **Multi-Platform**: Supports Kubernetes and OpenShift deployments.
 
+## Repository Structure
+
+```text
+ti-eng-mxl-k8s-csi/
+├── cmd/
+│   └── mxl-csi/                     # main entrypoint
+├── build/
+│   └── docker/                      # runtime image Dockerfiles
+├── deploy/
+│   ├── bootstrap/                   # host MXL domain lifecycle manifest
+│   ├── helm/
+│   │   └── mxl-csi/                 # Helm chart for CSI deployment
+│   └── patches/
+│       └── mxl-k8s-rc.20-patches/   # operator rc.20 value overrides and patches
+├── tests/
+│   ├── csi-test/                    # CSI dynamic provisioning scenario
+│   └── qvest-mxl-k8s-test/          # static PV/PVC baseline scenario
+├── go.mod
+├── go.sum
+└── README.md
+```
+
 ## Installation
 
 Install mxl-csi using the Helm chart in this repository.
 
 For full prerequisites and installation commands, see:
 
-- [charts/mxl-csi/README.md](charts/mxl-csi/README.md)
+- [deploy/helm/mxl-csi/README.md](deploy/helm/mxl-csi/README.md)
 
 ## Test Scenarios
 
@@ -59,7 +81,7 @@ Together, these scenarios are designed to validate both the mxl-k8s-csi driver b
 
 ### Scenario 1: Static PV/PVC Wiring (qvest-mxl-k8s-test)
 
-Use [qvest-mxl-k8s-test/README.md](qvest-mxl-k8s-test/README.md) when you want to validate cross-node MXL flow behavior with statically declared local PVs and PVCs.
+Use [tests/qvest-mxl-k8s-test/README.md](tests/qvest-mxl-k8s-test/README.md) when you want to validate cross-node MXL flow behavior with statically declared local PVs and PVCs.
 
 - Focus: baseline operator and media-flow behavior across nodes.
 - Storage model: static local PV/PVC manifests mapped to host path /run/mxl/domain.
@@ -67,7 +89,7 @@ Use [qvest-mxl-k8s-test/README.md](qvest-mxl-k8s-test/README.md) when you want t
 
 ### Scenario 2: CSI Dynamic Provisioning (csi-test)
 
-Use [csi-test/README.md](csi-test/README.md) when you want to validate the same media workflow using this CSI driver for dynamic provisioning and mount binding.
+Use [tests/csi-test/README.md](tests/csi-test/README.md) when you want to validate the same media workflow using this CSI driver for dynamic provisioning and mount binding.
 
 - Focus: replacing static PV/PVC wiring with CSI-backed dynamic claims.
 - Storage model: inline ephemeral volumeClaimTemplate requests using StorageClass mxl-domain-sc.
@@ -75,34 +97,40 @@ Use [csi-test/README.md](csi-test/README.md) when you want to validate the same 
 
 ### Which One To Run
 
-- Start with [qvest-mxl-k8s-test/README.md](qvest-mxl-k8s-test/README.md) for baseline functional validation of the MXL operator flow/mirror path.
-- Run [csi-test/README.md](csi-test/README.md) to validate CSI-based dynamic provisioning behavior in the same test pattern.
+- Start with [tests/qvest-mxl-k8s-test/README.md](tests/qvest-mxl-k8s-test/README.md) for baseline functional validation of the MXL operator flow/mirror path.
+- Run [tests/csi-test/README.md](tests/csi-test/README.md) to validate CSI-based dynamic provisioning behavior in the same test pattern.
 
 ## Build Images
 
+Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are already available in GHCR:
+
+- [`ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/ti-eng-mxl-k8s-csi)
+
+If you wish to build images locally instead, use the steps below.
+
 This repository includes two Dockerfiles:
 
-- `Dockerfile`: default runtime image based on Alpine.
-- `Dockerfile.ubi`: OpenShift-friendly runtime image based on Red Hat UBI minimal.
+- `build/docker/Dockerfile`: default runtime image based on Alpine.
+- `build/docker/Dockerfile.ubi`: OpenShift-friendly runtime image based on Red Hat UBI minimal.
 
 Build with Docker:
 
 ```bash
 # Alpine-based image (default Dockerfile)
-docker build -t ti-eng-mxl-k8s-csi:alpine .
+docker build -f build/docker/Dockerfile -t ti-eng-mxl-k8s-csi:alpine .
 
 # UBI-based image (explicit Dockerfile)
-docker build -f Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
+docker build -f build/docker/Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
 ```
 
 Build with Podman:
 
 ```bash
 # Alpine-based image
-podman build -t ti-eng-mxl-k8s-csi:alpine .
+podman build -f build/docker/Dockerfile -t ti-eng-mxl-k8s-csi:alpine .
 
 # UBI-based image
-podman build -f Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
+podman build -f build/docker/Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
 ```
 
 ## OpenShift Tag and Push Example

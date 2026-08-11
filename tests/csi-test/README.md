@@ -41,11 +41,11 @@ Unlike the static PV and PVC manifests in qvest-mxl-k8s-test, the csi-test manif
 Create the resources in this order:
 
 ```bash
-kubectl apply -f csi-test/mxl-video-flow.yaml
-kubectl apply -f csi-test/media-producer.yaml
-kubectl apply -f csi-test/mxl-receiver.yaml
-kubectl apply -f csi-test/media-consumer.yaml
-kubectl apply -f csi-test/mediamtx.yaml
+kubectl apply -f tests/csi-test/mxl-video-flow.yaml
+kubectl apply -f tests/csi-test/media-producer.yaml
+kubectl apply -f tests/csi-test/mxl-receiver.yaml
+kubectl apply -f tests/csi-test/media-consumer.yaml
+kubectl apply -f tests/csi-test/mediamtx.yaml
 ```
 
 ## Notes

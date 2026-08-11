@@ -7,7 +7,7 @@ This scenario is also part of the broader validation strategy for the mxl-k8s-cs
 
 - Qvest mxl-k8s operator is installed and healthy in the cluster.
 - MXL CRDs (for example MxlReceiver, MxlFlow, MxlFlowMirror) are present.
-- Nodes used in the test provide the host MXL domain path at /run/mxl/domain (for example via the lifecycle DaemonSet in this folder).
+- Nodes used in the test provide the host MXL domain path at /run/mxl/domain (for example via the lifecycle DaemonSet in deploy/bootstrap).
 - This scenario is intended to validate operator behavior directly and serve as the baseline reference when comparing against the CSI-based scenario.
 
 ## Test Goal
@@ -25,7 +25,7 @@ Validate that:
 
 ### Domain Lifecycle and Storage
 
-- [mxl-domain-volume-lc-daemonset.yaml](mxl-domain-volume-lc-daemonset.yaml)
+- [mxl-domain-volume-lc-daemonset.yaml](../../deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml)
   - DaemonSet that ensures `/run/mxl/domain` exists on each node and is mounted as tmpfs.
   - This is the `mxl-domain-volume-lifecycle-controller` that was previously run as a Deployment and converted to a DaemonSet so setup happens automatically on every worker node (instead of only one targeted node).
   - This is host-level lifecycle setup for the MXL domain path.
@@ -80,7 +80,7 @@ Validate that:
 ## How They Interconnect
 
 <p align="center">
-  <img src="mxl-interconnect.svg" alt="MXL k3s test interconnect flow" width="50%" />
+  <img src="mxl-interconnect.svg" alt="MXL qvest-mxl-k8s-test interconnect flow" width="50%" />
 </p>
 
 ## Expected Runtime Sequence
@@ -97,16 +97,16 @@ Validate that:
 ## Apply Order (Suggested)
 
 ```bash
-kubectl apply -f qvest-mxl-k8s-test/mxl-domain-volume-lc-daemonset.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pv.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pv-1.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pvc.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pvc-1.yaml
-kubectl apply -f qvest-mxl-k8s-test/mediamtx.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-video-flow.yaml
-kubectl apply -f qvest-mxl-k8s-test/media-consumer.yaml
-kubectl apply -f qvest-mxl-k8s-test/mxl-receiver.yaml
-kubectl apply -f qvest-mxl-k8s-test/media-producer.yaml
+kubectl apply -f deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-domain-pv.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-domain-pv-1.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-domain-pvc.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-domain-pvc-1.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mediamtx.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-video-flow.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/media-consumer.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/mxl-receiver.yaml
+kubectl apply -f tests/qvest-mxl-k8s-test/media-producer.yaml
 ```
 
 ## Verification Checklist
@@ -156,7 +156,7 @@ You should replace these PVC manifests with CSI-based PVCs (no `volumeName`, use
 
 You should keep this manifest (or provide an equivalent host bootstrapping mechanism):
 
-- [mxl-domain-volume-lc-daemonset.yaml](mxl-domain-volume-lc-daemonset.yaml)
+- [mxl-domain-volume-lc-daemonset.yaml](../../deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml)
 
 Reason: the CSI driver bind-mounts the shared host path into pods, but does not create and mount tmpfs for `/run/mxl/domain` by itself. The lifecycle DaemonSet is what ensures that host path exists as a tmpfs-backed MXL domain on every worker node.
 

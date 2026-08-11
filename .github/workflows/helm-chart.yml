@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - charts/mxl-csi/**
+      - deploy/helm/mxl-csi/**
       - .github/workflows/helm-chart.yml
   workflow_dispatch:
 
 env:
-  CHART_DIR: charts/mxl-csi
+  CHART_DIR: deploy/helm/mxl-csi
   OCI_REGISTRY: ghcr.io/${{ github.repository_owner }}/charts
 
 jobs:
