@@ -45,4 +45,4 @@ spec:
               storage: 1Gi
   - name: flow-config
     configMap:
-      name: mxl-video-flow-description
+      name: mxl-video-flow-description-1

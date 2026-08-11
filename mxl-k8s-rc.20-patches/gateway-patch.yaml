@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    deprecated.daemonset.template.generation: "24"
+    meta.helm.sh/release-name: mxl
+    meta.helm.sh/release-namespace: mxl-system
+  labels:
+    app.kubernetes.io/component: gateway
+    app.kubernetes.io/instance: mxl
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mxl-k8s-gateway
+    app.kubernetes.io/version: 1.0.0-rc.20
+    helm.sh/chart: mxl-k8s-1.0.0-rc.20
+  name: mxl-k8s-gateway
+  namespace: mxl-system
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: gateway
+      app.kubernetes.io/instance: mxl
+      app.kubernetes.io/name: mxl-k8s-gateway
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2026-08-10T23:25:05-04:00"
+      labels:
+        app.kubernetes.io/component: gateway
+        app.kubernetes.io/instance: mxl
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mxl-k8s-gateway
+        app.kubernetes.io/version: 1.0.0-rc.20
+        helm.sh/chart: mxl-k8s-1.0.0-rc.20
+    spec:
+      containers:
+      - args:
+        - |
+          # Read black01 IP from /proc/net/fib_trie (available without iproute2).
+          # Alternatively derive from NODE_NAME since IPs are fixed per node.
+          case "${NODE_NAME}" in
+            mtllppdmh001) BIND="10.164.138.254" ;;
+            mtllppdmh002) BIND="10.164.138.252" ;;
+            *)
+              echo "ERROR: unknown node ${NODE_NAME}, cannot determine black01 IP"
+              exit 1
+              ;;
+          esac
+          echo "Binding gateway to black01: ${BIND} (node: ${NODE_NAME})"
+          exec /usr/local/bin/mxl-fabrics-gateway \
+            --bind-address="${BIND}" \
+            --domain-path=/run/mxl/domain \
+            --health-probe-bind-address=:9081 \
+            --metrics-bind-address=:9082 \
+            --providers=tcp \
+            --resync-period=30s \
+            --zap-log-level=info
+        command:
+        - /bin/sh
+        - -c
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: FI_LOG_LEVEL
+          value: debug
+        - name: FI_TCP_IFACE
+          value: black01
+        image: ghcr.io/qvest-digital/mxl-k8s/gateway:v1.0.0-rc.20
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: probe
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: gateway
+        ports:
+        - containerPort: 9081
+          name: probe
+          protocol: TCP
+        - containerPort: 9082
+          name: metrics
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: probe
+            scheme: HTTP
+          initialDelaySeconds: 2
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - IPC_LOCK
+            - SYS_RESOURCE
+            - SYS_ADMIN
+            - DAC_OVERRIDE
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /run/mxl/domain
+          mountPropagation: HostToContainer
+          name: mxl-domain
+        - mountPath: /dev/shm
+          name: dshm
+      dnsPolicy: ClusterFirstWithHostNet
+      hostIPC: true
+      hostNetwork: true
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      serviceAccount: mxl-k8s-gateway
+      serviceAccountName: mxl-k8s-gateway
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - hostPath:
+          path: /run/mxl/domain
+          type: DirectoryOrCreate
+        name: mxl-domain
+      - emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+        name: dshm
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate

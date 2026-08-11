@@ -10,6 +10,19 @@ This chart deploys the MXL CSI driver in the standard split mode:
 - Kubernetes cluster with Linux worker nodes
 - Privileged pod support for the node plugin
 - Image already pushed to a registry reachable by your cluster
+- A Kubernetes image pull secret named ghcr-creds in the target namespace (kube-system in the examples below) for pulling from ghcr.io/cbcrc-ea
+
+Create the secret before installation:
+
+```bash
+kubectl -n kube-system create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=<github-username> \
+  --docker-password=<github-enterprise-token> \
+  --docker-email=<email>
+```
+
+The GitHub Enterprise token should have permission to pull images from ghcr.io/cbcrc-ea (for example, read:packages).
 
 ## Install
 

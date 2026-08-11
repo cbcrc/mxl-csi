@@ -16,6 +16,7 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: mtllppdmh002
       volumes:
+        # CSI Domain Volume
         - name: domain
           ephemeral:
             volumeClaimTemplate:
@@ -25,6 +26,11 @@ spec:
                 resources:
                   requests:
                     storage: 1Gi
+        # HostPath Volume for Agent Socket
+        - name: agent-socket
+          hostPath:
+            path: /run/mxl/agent.sock
+            type: Socket
       containers:
         - name: ffmpeg
           image: ghcr.io/cbcrc/ffmpeg-mxl-prod:latest
@@ -38,7 +44,7 @@ spec:
             - name: MXL_DOMAIN
               value: "/run/mxl/domain"
             - name: RTSP_URL
-              value: "rtsp://mediamtx-service-inside.qvest-mxl-test.svc.cluster.local:8554/stream"
+              value: "rtsp://mediamtx-service-inside.mxl-csi-test.svc.cluster.local:8554/stream"
             - name: VIDEO_ID
               value: "5fbec3b1-1b0f-417d-9059-8b94a47197ed"
             - name: TRANSCODER_MODE
@@ -50,7 +56,9 @@ spec:
             - name: RTSP_TRANSPORT
               value: "tcp"
           volumeMounts:
-            # Mounting the PVC directly to the required domain path
+            # Mount CSI domain
             - name: domain
               mountPath: /run/mxl/domain
-          
+            # Mount host agent socket directly into /run/mxl/agent.sock
+            - name: agent-socket
+              mountPath: /run/mxl/agent.sock
