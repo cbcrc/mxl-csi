@@ -1,0 +1,19 @@
+operator:
+  replicaCount: 3
+  flags:
+    leaderElect: true
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 2
+
+gateway:
+  hostNetwork: true
+  flags:
+    healthProbeBindAddress: ":9081"
+    metricsBindAddress: ":9082"
+    providers: [tcp]
+  metrics:
+    service:
+      port: 9082
+  readinessProbe: {}
+  livenessProbe: {}

@@ -1,0 +1,32 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: mxl-operator-leader-election
+  namespace: mxl-system
+rules:
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: mxl-operator-leader-election-binding
+  namespace: mxl-system
+subjects:
+  - kind: ServiceAccount
+    name: mxl-k8s-operator # The SA running your operator pod
+    namespace: mxl-system
+roleRef:
+  kind: Role
+  name: mxl-operator-leader-election
+  apiGroup: rbac.authorization.k8s.io

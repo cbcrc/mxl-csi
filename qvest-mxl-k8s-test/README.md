@@ -1,6 +1,14 @@
-# k3s-test: Cross-Node MXL Flow Sharing Validation
+# qvest-mxl-k8s-test: Cross-Node MXL Flow Sharing Validation
 
 This folder contains a full test scenario to validate cross-node sharing of MXL flows in Kubernetes using Qvest's `mxl-k8s` operator.
+This scenario is also part of the broader validation strategy for the mxl-k8s-csi project by providing the static-PV baseline behavior.
+
+## Prerequisites
+
+- Qvest mxl-k8s operator is installed and healthy in the cluster.
+- MXL CRDs (for example MxlReceiver, MxlFlow, MxlFlowMirror) are present.
+- Nodes used in the test provide the host MXL domain path at /run/mxl/domain (for example via the lifecycle DaemonSet in this folder).
+- This scenario is intended to validate operator behavior directly and serve as the baseline reference when comparing against the CSI-based scenario.
 
 ## Test Goal
 
@@ -89,16 +97,16 @@ Validate that:
 ## Apply Order (Suggested)
 
 ```bash
-kubectl apply -f k3s-test/mxl-domain-volume-lc-daemonset.yaml
-kubectl apply -f k3s-test/mxl-domain-pv.yaml
-kubectl apply -f k3s-test/mxl-domain-pv-1.yaml
-kubectl apply -f k3s-test/mxl-domain-pvc.yaml
-kubectl apply -f k3s-test/mxl-domain-pvc-1.yaml
-kubectl apply -f k3s-test/mediamtx.yaml
-kubectl apply -f k3s-test/mxl-video-flow.yaml
-kubectl apply -f k3s-test/media-consumer.yaml
-kubectl apply -f k3s-test/mxl-receiver.yaml
-kubectl apply -f k3s-test/media-producer.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-domain-volume-lc-daemonset.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pv.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pv-1.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pvc.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-domain-pvc-1.yaml
+kubectl apply -f qvest-mxl-k8s-test/mediamtx.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-video-flow.yaml
+kubectl apply -f qvest-mxl-k8s-test/media-consumer.yaml
+kubectl apply -f qvest-mxl-k8s-test/mxl-receiver.yaml
+kubectl apply -f qvest-mxl-k8s-test/media-producer.yaml
 ```
 
 ## Verification Checklist

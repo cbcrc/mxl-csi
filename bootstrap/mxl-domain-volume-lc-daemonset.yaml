@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: mxl-domain-volume-lifecycle-controller
-  namespace: qvest-mxl-test
+  namespace: kube-system
 spec:
   selector:
     matchLabels:

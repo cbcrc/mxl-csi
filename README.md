@@ -44,19 +44,39 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 - **Lightweight Behavior**: Minimal CSI surface, focused on mapping pods to shared mxl tmpfs.
 - **Multi-Platform**: Supports Kubernetes and OpenShift deployments.
 
-## k3s Test Quick Start
+## Installation
 
-For the end-to-end cross-node MXL flow sharing validation scenario (producer -> operator flow/mirror reconciliation -> consumer -> MediaMTX -> VLC), see:
+Install mxl-csi using the Helm chart in this repository.
 
-- [k3s-test/README.md](k3s-test/README.md)
+For full prerequisites and installation commands, see:
 
-That guide includes:
+- [charts/mxl-csi/README.md](charts/mxl-csi/README.md)
 
-- Manifest-by-manifest explanation
-- Runtime interconnection flow
-- Suggested apply order
-- Verification commands
-- VLC playback settings (RTSP over TCP)
+## Test Scenarios
+
+This repository contains two end-to-end test folders that validate the same MXL media flow behavior with different storage approaches.
+Together, these scenarios are designed to validate both the mxl-k8s-csi driver behavior and the Qvest mxl-k8s operator flow/mirror reconciliation behavior.
+
+### Scenario 1: Static PV/PVC Wiring (qvest-mxl-k8s-test)
+
+Use [qvest-mxl-k8s-test/README.md](qvest-mxl-k8s-test/README.md) when you want to validate cross-node MXL flow behavior with statically declared local PVs and PVCs.
+
+- Focus: baseline operator and media-flow behavior across nodes.
+- Storage model: static local PV/PVC manifests mapped to host path /run/mxl/domain.
+- Includes: full manifest explanations, interconnect flow, apply order, and verification steps.
+
+### Scenario 2: CSI Dynamic Provisioning (csi-test)
+
+Use [csi-test/README.md](csi-test/README.md) when you want to validate the same media workflow using this CSI driver for dynamic provisioning and mount binding.
+
+- Focus: replacing static PV/PVC wiring with CSI-backed dynamic claims.
+- Storage model: inline ephemeral volumeClaimTemplate requests using StorageClass mxl-domain-sc.
+- Includes: file-by-file explanation and ordered apply sequence for flow, producer, receiver, consumer, and MediaMTX manifests.
+
+### Which One To Run
+
+- Start with [qvest-mxl-k8s-test/README.md](qvest-mxl-k8s-test/README.md) for baseline functional validation of the MXL operator flow/mirror path.
+- Run [csi-test/README.md](csi-test/README.md) to validate CSI-based dynamic provisioning behavior in the same test pattern.
 
 ## Build Images
 
