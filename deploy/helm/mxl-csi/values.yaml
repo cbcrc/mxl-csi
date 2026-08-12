@@ -8,7 +8,7 @@ driver:
 
 image:
   repository: ghcr.io/cbcrc-ea/mxl-k8s-csi
-  tag: "0.2.2"
+  tag: "0.2.3"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

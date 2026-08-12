@@ -26,7 +26,7 @@ import (
 
 const (
 	defaultDriverName    = "mxl.csi.k8s.local"
-	defaultDriverVersion = "0.2.2"
+	defaultDriverVersion = "0.2.3"
 	defaultEndpoint      = "unix:///csi/csi.sock"
 	defaultSharedPath    = "/run/mxl/domain"
 
@@ -522,16 +522,20 @@ func (d *driver) ensureSharedTmpfsLocked(targetBytes int64) error {
 		return fmt.Errorf("create shared path %q: %w", d.sharedPath, err)
 	}
 
-	// isMountPoint reads this container's own mountinfo, which already shows
-	// d.sharedPath as mounted via the DaemonSet's hostPath volumeMount, so it
-	// can't tell whether tmpfs was actually created there yet. Check the
-	// filesystem type instead.
-	mounted, err := isTmpfsMounted(d.sharedPath)
-	if err != nil {
-		return fmt.Errorf("check filesystem type %q: %w", d.sharedPath, err)
+	// Neither /proc/self/mountinfo (masked by this container's own hostPath
+	// bind mount of d.sharedPath) nor the tmpfs filesystem type (since /run is
+	// itself commonly tmpfs on systemd hosts, independent of our own mount)
+	// reliably indicate whether our sized/owned tmpfs was actually created
+	// here. domain_def.json is only ever written by this code, right after a
+	// successful mount, so its presence is the one signal we control.
+	domainDefPath := filepath.Join(d.sharedPath, "domain_def.json")
+	_, statErr := os.Stat(domainDefPath)
+	initialized := statErr == nil
+	if statErr != nil && !errors.Is(statErr, os.ErrNotExist) {
+		return fmt.Errorf("stat %q: %w", domainDefPath, statErr)
 	}
 
-	if !mounted {
+	if !initialized {
 		opts := fmt.Sprintf("size=%d,nosuid,nodev,noexec,strictatime,mode=%o,uid=%d,gid=%d", targetBytes, defaultDomainMode, defaultDomainOwnerID, defaultDomainOwnerID)
 		if out, err := exec.Command("mount", "-t", "tmpfs", "-o", opts, "tmpfs", d.sharedPath).CombinedOutput(); err != nil {
 			return fmt.Errorf("mount tmpfs on %q: %w: %s", d.sharedPath, err, strings.TrimSpace(string(out)))
@@ -541,7 +545,6 @@ func (d *driver) ensureSharedTmpfsLocked(targetBytes int64) error {
 			return fmt.Errorf("chmod shared path %q: %w", d.sharedPath, err)
 		}
 
-		domainDefPath := filepath.Join(d.sharedPath, "domain_def.json")
 		domainJSON := fmt.Sprintf(`{"id":"99ef9b5c-98c1-5f98-9def-1d61ee9a4fdb","label":"mxl-domain-%s","description":"MXL CSI dynamic tmpfs domain"}`+"\n", d.nodeID)
 		if err := os.WriteFile(domainDefPath, []byte(domainJSON), 0o644); err != nil {
 			return fmt.Errorf("write domain_def.json: %w", err)
@@ -781,20 +784,6 @@ func isMountPoint(target string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-// tmpfsMagic is the statfs f_type value for tmpfs (see linux/magic.h TMPFS_MAGIC).
-const tmpfsMagic = 0x01021994
-
-func isTmpfsMounted(target string) (bool, error) {
-	var stat syscall.Statfs_t
-	if err := syscall.Statfs(target, &stat); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return false, nil
-		}
-		return false, err
-	}
-	return int64(stat.Type) == tmpfsMagic, nil
 }
 
 func decodeMountInfoPath(s string) string {
