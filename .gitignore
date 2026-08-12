@@ -11,6 +11,9 @@
 # Test binary, built with `go test -c`
 *.test
 
+# Local build output of cmd/mxl-csi
+/mxl-csi
+
 # Code coverage profiles and other test artifacts
 *.out
 coverage.*
