@@ -134,7 +134,7 @@ Use [tests/csi-test/README.md](tests/csi-test/README.md) when you want to valida
 
 Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are already available in GHCR:
 
-- [`ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/ti-eng-mxl-k8s-csi)
+- [`ghcr.io/cbcrc-ea/mxl-k8s-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/mxl-k8s-csi)
 
 If you wish to build images locally instead, use the steps below.
 
