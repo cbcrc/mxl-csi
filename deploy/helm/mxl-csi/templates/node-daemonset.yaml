@@ -80,6 +80,7 @@ spec:
               mountPropagation: Bidirectional
             - name: shared-host-path
               mountPath: {{ .Values.driver.sharedHostPath }}
+              mountPropagation: Bidirectional
       volumes:
         - name: plugin-dir
           hostPath:
