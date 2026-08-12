@@ -28,21 +28,17 @@ The GitHub Enterprise token should have permission to pull images from ghcr.io/c
 
 Run the following commands from the repository root.
 
-1. Create the MXL domain lifecycle bootstrap DaemonSet first:
-
-```bash
-kubectl apply -f ./deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml
-```
-
-2. Install the Helm chart:
+1. Install the Helm chart:
 
 ```bash
 helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
   --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
-  --set image.tag=0.1.0
+  --set image.tag=0.2.0
 ```
+
+The CSI driver now includes merged domain lifecycle behavior (create/mount `/run/mxl/domain` tmpfs and grow on-demand), so the bootstrap DaemonSet is optional unless you want a pre-provisioned host setup.
 
 ## Install with pre-prod values
 
@@ -52,7 +48,7 @@ helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --create-namespace \
   -f ./deploy/helm/mxl-csi/values-preprod.yaml \
   --set image.repository=ghcr.io/cbcrc-ea/ti-eng-mxl-k8s-csi \
-  --set image.tag=0.1.0
+  --set image.tag=0.2.0
 ```
 
 ## Verify
