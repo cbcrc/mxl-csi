@@ -17,6 +17,7 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 - PVC events are used as the Kubernetes control-plane trigger.
 - The mounted data source remains a shared host tmpfs location.
 - Per-volume backend allocation is intentionally bypassed.
+- The shared tmpfs is owned by uid/gid `1000:1000` with mode `0775`; containers not running as uid `1000` or root need `securityContext.supplementalGroups: [1000]` at the pod level to get write access, since ownership is fixed per-node rather than per-volume.
 
 ### How It Works
 

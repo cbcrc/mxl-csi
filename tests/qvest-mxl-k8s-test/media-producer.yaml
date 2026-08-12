@@ -6,6 +6,8 @@ metadata:
 spec:
   nodeSelector:
     kubernetes.io/hostname: mtllppdmh001
+  securityContext:
+    supplementalGroups: [1000]
   initContainers:
   - name: cleanup-zombie-flow
     image: busybox:latest

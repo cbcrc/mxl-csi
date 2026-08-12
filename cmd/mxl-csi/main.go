@@ -26,7 +26,7 @@ import (
 
 const (
 	defaultDriverName    = "mxl.csi.k8s.local"
-	defaultDriverVersion = "0.2.1"
+	defaultDriverVersion = "0.2.2"
 	defaultEndpoint      = "unix:///csi/csi.sock"
 	defaultSharedPath    = "/run/mxl/domain"
 
@@ -522,9 +522,13 @@ func (d *driver) ensureSharedTmpfsLocked(targetBytes int64) error {
 		return fmt.Errorf("create shared path %q: %w", d.sharedPath, err)
 	}
 
-	mounted, err := isMountPoint(d.sharedPath)
+	// isMountPoint reads this container's own mountinfo, which already shows
+	// d.sharedPath as mounted via the DaemonSet's hostPath volumeMount, so it
+	// can't tell whether tmpfs was actually created there yet. Check the
+	// filesystem type instead.
+	mounted, err := isTmpfsMounted(d.sharedPath)
 	if err != nil {
-		return fmt.Errorf("check mountpoint %q: %w", d.sharedPath, err)
+		return fmt.Errorf("check filesystem type %q: %w", d.sharedPath, err)
 	}
 
 	if !mounted {
@@ -777,6 +781,20 @@ func isMountPoint(target string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// tmpfsMagic is the statfs f_type value for tmpfs (see linux/magic.h TMPFS_MAGIC).
+const tmpfsMagic = 0x01021994
+
+func isTmpfsMounted(target string) (bool, error) {
+	var stat syscall.Statfs_t
+	if err := syscall.Statfs(target, &stat); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
+	}
+	return int64(stat.Type) == tmpfsMagic, nil
 }
 
 func decodeMountInfoPath(s string) string {
