@@ -1,5 +1,5 @@
 # ti-eng-mxl-k8s-csi
-CSI definition for dynamic binding of mxl tmpfs to k8s PVCs
+CSI driver for dynamic mxl tmpfs lifecycle, mount binding, and PVC-aware scaling
 
 ## Overview
 
@@ -24,17 +24,47 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 2. **PersistentVolumeClaim**: Pods request storage by creating a PVC that uses the mxl StorageClass.
 3. **Controller Intercept**: The controller service satisfies CSI create/delete volume calls so Kubernetes can complete its PVC lifecycle, but does not carve dedicated backend storage.
 4. **Node Bind Mount**: On node publish, the driver bind-mounts the shared host path into the pod's requested target path.
-5. **Pod Access**: The pod accesses the mount as a normal volume while the backing data remains the shared mxl tmpfs ring buffer.
+5. **Domain Lifecycle**: On first publish on a node, the driver can create `/run/mxl/domain`, mount tmpfs, and apply domain permissions/profile.
+6. **Pod Access**: The pod accesses the mount as a normal volume while the backing data remains the shared mxl tmpfs ring buffer.
 
 ### CSI Implementation Notes
 
-- **Driver identity**: Defaults to name `mxl.csi.k8s.local`, version `0.1.0`.
+- **Driver identity**: Defaults to name `mxl.csi.k8s.local`, version `0.2.0`.
 - **Shared host path**: Defaults to `/run/mxl/domain`, configurable via `--shared-host-path` (or `MXL_SHARED_HOST_PATH`).
 - **Identity service**: Advertises controller service capability.
-- **Controller service**: Advertises `CREATE_DELETE_VOLUME` capability to integrate with PVC workflows.
-- **Create/Delete behavior**: Validates requests and returns success metadata, but does not provision isolated storage units.
-- **Node service**: Uses `NodePublishVolume` and `NodeUnpublishVolume` to perform bind mount and unmount operations.
-- **Unsupported operations**: Snapshots, expansion, and several optional controller/node operations return `Unimplemented` by design to keep the driver focused on mount abstraction.
+- **Controller service**: Advertises `CREATE_DELETE_VOLUME` and `EXPAND_VOLUME` capabilities for PVC lifecycle and expansion workflows.
+- **Create/Delete behavior**: Tracks per-volume requested capacity and cleanup policy metadata while keeping a shared-domain backend model.
+- **Node service**: Uses `NodePublishVolume` and `NodeUnpublishVolume` for bind mount lifecycle and per-volume flow cleanup policy handling.
+- **Expansion path**: Supports aggregate shared tmpfs growth using online remount based on active PVC requested sizes.
+- **Unsupported operations**: Snapshots and several optional controller/node operations remain `Unimplemented` by design to keep the driver focused on mount abstraction.
+
+### Merged Domain Lifecycle Capabilities
+
+Version `0.2.0` merges core functionality that previously required the standalone domain lifecycle controller:
+
+- Dynamic creation of `/run/mxl/domain` on node demand.
+- Dynamic tmpfs mount of the shared MXL domain path with configured ownership and mode.
+- Shared tmpfs growth via remount when active PVC requested capacity increases.
+- Per-volume flow cleanup policy support (`onLastUnpublish` default, `onDelete` optional) to coordinate deletion behavior.
+
+### Upgrade Notes (0.1.x -> 0.2.0)
+
+- Driver default version is now `0.2.0`.
+- Domain lifecycle behavior is merged into CSI node operations.
+- The driver can create `/run/mxl/domain` and mount tmpfs on first publish.
+- The standalone bootstrap DaemonSet becomes optional for CSI-based workflows.
+- Expansion support is now enabled for shared tmpfs growth.
+- `ControllerExpandVolume` and `NodeExpandVolume` are implemented for resize workflows.
+- Capacity growth is applied to the shared tmpfs via remount, based on active PVC requested sizes.
+- Flow cleanup behavior is policy-driven per volume.
+- Default policy is `onLastUnpublish` for deterministic node-side cleanup.
+- Optional `onDelete` policy keeps cleanup tied to delete lifecycle signaling.
+
+Operational guidance:
+
+- Validate memory headroom on nodes before enabling aggressive PVC growth.
+- Roll out with canary nodes first and observe remount/stream stability under load.
+- Keep `deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml` only if you require pre-provisioned host state before pod scheduling.
 
 ### Key Features
 
@@ -53,7 +83,7 @@ ti-eng-mxl-k8s-csi/
 ├── build/
 │   └── docker/                      # runtime image Dockerfiles
 ├── deploy/
-│   ├── bootstrap/                   # host MXL domain lifecycle manifest
+│   ├── bootstrap/                   # optional standalone lifecycle manifest (legacy/fallback)
 │   ├── helm/
 │   │   └── mxl-csi/                 # Helm chart for CSI deployment
 │   └── patches/

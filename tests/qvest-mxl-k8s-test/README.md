@@ -154,11 +154,11 @@ You should replace these PVC manifests with CSI-based PVCs (no `volumeName`, use
 - [mxl-domain-pvc.yaml](mxl-domain-pvc.yaml)
 - [mxl-domain-pvc-1.yaml](mxl-domain-pvc-1.yaml)
 
-You should keep this manifest (or provide an equivalent host bootstrapping mechanism):
+With mxl-csi `v0.2.0+`, this manifest is optional for CSI-based workflows because the driver can create and mount tmpfs for `/run/mxl/domain` on demand. Keep it when you want host-level pre-provisioning behavior (as done in this static baseline scenario):
 
 - [mxl-domain-volume-lc-daemonset.yaml](../../deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml)
 
-Reason: the CSI driver bind-mounts the shared host path into pods, but does not create and mount tmpfs for `/run/mxl/domain` by itself. The lifecycle DaemonSet is what ensures that host path exists as a tmpfs-backed MXL domain on every worker node.
+Reason: this lifecycle DaemonSet still provides explicit host-level setup before workloads start, which can be useful for deterministic baseline testing and operational environments that prefer pre-provisioned node state.
 
 Workload manifests to update for CSI migration:
 

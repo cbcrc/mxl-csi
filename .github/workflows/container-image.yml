@@ -1,0 +1,176 @@
+name: Container Image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - cmd/**
+      - build/docker/**
+      - deploy/helm/mxl-csi/Chart.yaml
+      - go.mod
+      - go.sum
+      - .github/workflows/container-image.yml
+  pull_request:
+    paths:
+      - cmd/**
+      - build/docker/**
+      - deploy/helm/mxl-csi/Chart.yaml
+      - go.mod
+      - go.sum
+      - .github/workflows/container-image.yml
+  workflow_dispatch:
+    inputs:
+      publish_test:
+        description: Publish image to GHCR for branch testing
+        required: false
+        default: true
+        type: boolean
+      test_tag:
+        description: Optional explicit test tag (for example, test-rc20-1)
+        required: false
+        type: string
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/ti-eng-mxl-k8s-csi
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect version change for main publish
+        id: version_gate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          extract_driver_version() {
+            grep -E 'defaultDriverVersion[[:space:]]*=' "$1" | sed -E 's/.*"([^"]+)".*/\1/' | head -n 1
+          }
+
+          DRIVER_AFTER="$(extract_driver_version cmd/mxl-csi/main.go || true)"
+          DRIVER_BEFORE="$(git show "${{ github.event.before }}:cmd/mxl-csi/main.go" 2>/dev/null | grep -E 'defaultDriverVersion[[:space:]]*=' | sed -E 's/.*"([^"]+)".*/\1/' | head -n 1 || true)"
+
+          CHART_AFTER="$(awk -F'"' '/^appVersion:/ {print $2; exit}' deploy/helm/mxl-csi/Chart.yaml || true)"
+          CHART_BEFORE="$(git show "${{ github.event.before }}:deploy/helm/mxl-csi/Chart.yaml" 2>/dev/null | awk -F'"' '/^appVersion:/ {print $2; exit}' || true)"
+
+          VERSION_CHANGED=false
+          if [[ "${DRIVER_AFTER}" != "${DRIVER_BEFORE}" ]]; then
+            VERSION_CHANGED=true
+          fi
+          if [[ "${CHART_AFTER}" != "${CHART_BEFORE}" ]]; then
+            VERSION_CHANGED=true
+          fi
+
+          echo "driver_before=${DRIVER_BEFORE}"
+          echo "driver_after=${DRIVER_AFTER}"
+          echo "chart_before=${CHART_BEFORE}"
+          echo "chart_after=${CHART_AFTER}"
+          echo "version_changed=${VERSION_CHANGED}" >> "$GITHUB_OUTPUT"
+
+      - name: Decide publish mode
+        id: publish_mode
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PUSH_IMAGE=false
+          CHANNEL=pr
+
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            PUSH_IMAGE=false
+            CHANNEL=pr
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ inputs.publish_test }}" == "true" ]]; then
+              PUSH_IMAGE=true
+              CHANNEL=test
+            else
+              PUSH_IMAGE=false
+              CHANNEL=test
+            fi
+          elif [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            if [[ "${{ steps.version_gate.outputs.version_changed }}" == "true" ]]; then
+              PUSH_IMAGE=true
+              CHANNEL=prod
+            else
+              PUSH_IMAGE=false
+              CHANNEL=prod
+            fi
+          fi
+
+          echo "push_image=${PUSH_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: steps.publish_mode.outputs.push_image == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Assemble tag list
+        id: assemble_tags
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAGS="${{ steps.meta.outputs.tags }}"
+          if [[ "${{ steps.publish_mode.outputs.channel }}" == "test" ]]; then
+            CUSTOM_TAG="${{ inputs.test_tag }}"
+            if [[ -z "${CUSTOM_TAG}" ]]; then
+              CUSTOM_TAG="test-${GITHUB_SHA::7}"
+            fi
+            TAGS="${TAGS}"$'\n'"${{ env.IMAGE_NAME }}:${CUSTOM_TAG}"
+          fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push (multi-arch)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: build/docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ steps.publish_mode.outputs.push_image == 'true' }}
+          tags: ${{ steps.assemble_tags.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+
+      - name: Publish decision summary
+        if: always()
+        run: |
+          echo "channel=${{ steps.publish_mode.outputs.channel }}"
+          echo "push_image=${{ steps.publish_mode.outputs.push_image }}"
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "version_changed=${{ steps.version_gate.outputs.version_changed }}"
+          fi
