@@ -67,6 +67,12 @@ Operational guidance:
 - Roll out with canary nodes first and observe remount/stream stability under load.
 - Keep `deploy/bootstrap/mxl-domain-volume-lc-daemonset.yaml` only if you require pre-provisioned host state before pod scheduling.
 
+### New in Version 0.2.5
+
+- **Reliable tmpfs setup detection**: The driver no longer relies on mount-table lookups or filesystem-type checks to decide whether `/run/mxl/domain` needs its initial tmpfs setup. Both approaches produced false positives — the container's own hostPath volumeMount always shows up as a mount, and `/run` is itself commonly tmpfs on systemd hosts. Detection now keys off the presence of `domain_def.json`, which only this driver ever writes, right after a successful mount.
+- **Host-visible domain mount**: The `shared-host-path` volumeMount in the node DaemonSet now sets `mountPropagation: Bidirectional`, so the tmpfs mount created by the driver actually propagates to the real host mount namespace instead of staying private to the driver's own container. This matters for anything running directly on the host (e.g. a host-native `mxl` agent) that expects to see `/run/mxl/domain` outside of Kubernetes.
+- **Per-node unique domain IDs**: `domain_def.json`'s `id` field is now a UUIDv5 deterministically derived from the node ID, instead of a single hardcoded UUID shared by every node. The `description` field also now includes the node name.
+
 ### Key Features
 
 - **Dynamic Mount Binding**: Mounts are handled on-demand per pod/PVC request path.

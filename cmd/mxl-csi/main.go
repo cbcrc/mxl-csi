@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -26,7 +27,7 @@ import (
 
 const (
 	defaultDriverName    = "mxl.csi.k8s.local"
-	defaultDriverVersion = "0.2.4"
+	defaultDriverVersion = "0.2.5"
 	defaultEndpoint      = "unix:///csi/csi.sock"
 	defaultSharedPath    = "/run/mxl/domain"
 
@@ -509,6 +510,29 @@ func (d *driver) NodeGetInfo(context.Context, *csi.NodeGetInfoRequest) (*csi.Nod
 	return &csi.NodeGetInfoResponse{NodeId: d.nodeID}, nil
 }
 
+// domainNamespaceUUID is the fixed namespace domain_def.json previously used
+// for every node; kept as the UUIDv5 namespace so per-node IDs derive from it.
+var domainNamespaceUUID = [16]byte{
+	0x99, 0xef, 0x9b, 0x5c, 0x98, 0xc1, 0x5f, 0x98,
+	0x9d, 0xef, 0x1d, 0x61, 0xee, 0x9a, 0x4f, 0xdb,
+}
+
+// domainIDForNode deterministically derives a UUIDv5 (RFC 4122) from the node
+// ID, so each node gets its own stable domain id instead of sharing one.
+func domainIDForNode(nodeID string) string {
+	h := sha1.New()
+	h.Write(domainNamespaceUUID[:])
+	h.Write([]byte(nodeID))
+	sum := h.Sum(nil)
+
+	var uuid [16]byte
+	copy(uuid[:], sum[:16])
+	uuid[6] = (uuid[6] & 0x0f) | 0x50 // version 5
+	uuid[8] = (uuid[8] & 0x3f) | 0x80 // RFC 4122 variant
+
+	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:16])
+}
+
 func (d *driver) ensureSharedTmpfsLocked(targetBytes int64) error {
 	if targetBytes <= 0 {
 		targetBytes = minTmpfsSizeBytes
@@ -545,7 +569,7 @@ func (d *driver) ensureSharedTmpfsLocked(targetBytes int64) error {
 			return fmt.Errorf("chmod shared path %q: %w", d.sharedPath, err)
 		}
 
-		domainJSON := fmt.Sprintf(`{"id":"99ef9b5c-98c1-5f98-9def-1d61ee9a4fdb","label":"mxl-domain-%s","description":"MXL CSI dynamic tmpfs domain"}`+"\n", d.nodeID)
+		domainJSON := fmt.Sprintf(`{"id":"%s","label":"mxl-domain-%s","description":"MXL CSI dynamic tmpfs domain on node %s"}`+"\n", domainIDForNode(d.nodeID), d.nodeID, d.nodeID)
 		if err := os.WriteFile(domainDefPath, []byte(domainJSON), 0o644); err != nil {
 			return fmt.Errorf("write domain_def.json: %w", err)
 		}
