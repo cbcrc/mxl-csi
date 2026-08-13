@@ -30,7 +30,7 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 
 ### CSI Implementation Notes
 
-- **Driver identity**: Defaults to name `mxl.csi.k8s.local`, version `0.2.0`.
+- **Driver identity**: Defaults to name `mxl.csi.k8s.local`, version `0.2.5` (see `defaultDriverVersion` in `cmd/mxl-csi/main.go`).
 - **Shared host path**: Defaults to `/run/mxl/domain`, configurable via `--shared-host-path` (or `MXL_SHARED_HOST_PATH`).
 - **Identity service**: Advertises controller service capability.
 - **Controller service**: Advertises `CREATE_DELETE_VOLUME` and `EXPAND_VOLUME` capabilities for PVC lifecycle and expansion workflows.
@@ -48,9 +48,9 @@ Version `0.2.0` merges core functionality that previously required the standalon
 - Shared tmpfs growth via remount when active PVC requested capacity increases.
 - Per-volume flow cleanup policy support (`onLastUnpublish` default, `onDelete` optional) to coordinate deletion behavior.
 
-### Upgrade Notes (0.1.x -> 0.2.0)
+### Upgrade Notes (0.1.x -> 0.2.x)
 
-- Driver default version is now `0.2.0`.
+- Driver default version is now `0.2.5`.
 - Domain lifecycle behavior is merged into CSI node operations.
 - The driver can create `/run/mxl/domain` and mount tmpfs on first publish.
 - The standalone bootstrap DaemonSet becomes optional for CSI-based workflows.
