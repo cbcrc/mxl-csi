@@ -48,6 +48,7 @@ node:
     image: registry.k8s.io/sig-storage/livenessprobe
     tag: v2.15.0
     pullPolicy: IfNotPresent
+    healthPort: 9808
 
 rbac:
   create: true
