@@ -54,6 +54,7 @@ spec:
           imagePullPolicy: {{ .Values.node.livenessProbe.pullPolicy }}
           args:
             - --csi-address=/csi/csi.sock
+            - --health-port={{ .Values.node.livenessProbe.healthPort | default 9808 }}
           volumeMounts:
             - name: plugin-dir
               mountPath: /csi
