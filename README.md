@@ -32,19 +32,19 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 
 ```mermaid
 flowchart TD
-    A["1 - Pod requests storage<br/>PVC references StorageClass mxl-domain-sc<br/>provisioner: mxl.csi.k8s.local"]
-    B["2 - kube-controller-manager sees<br/>a Pending PVC for this provisioner"]
-    C["3 - csi-provisioner sidecar picks it up<br/>and calls CreateVolume over gRPC"]
-    D["4 - mxl-csi controller service<br/>acknowledges the volume<br/>no backend storage is carved"]
-    E["5 - VolumeContext returned<br/>sharedHostPath, requestedBytes,<br/>flowCleanupPolicy"]
-    F["6 - PersistentVolume created<br/>and bound to the PVC"]
-    G["7 - Pod scheduled to a node<br/>kubelet resolves the bound PV"]
-    H["8 - kubelet calls NodePublishVolume<br/>on /csi/csi.sock<br/>registered by node-driver-registrar"]
-    I{"9 - domain_def.json<br/>present on this node?"}
-    J["10a - First publish on node<br/>mkdir /run/mxl/domain, mount tmpfs,<br/>chown 1000:1000, chmod 0775,<br/>write domain_def.json"]
-    K["10b - Domain already set up<br/>remount tmpfs if the sum of<br/>active PVC sizes has grown"]
-    L["11 - mount --bind /run/mxl/domain<br/>into the pod volume target path"]
-    M["12 - Pod running with the shared<br/>MXL tmpfs ring buffer mounted<br/>as a normal volume"]
+    A["1 - Pod requests PVC using StorageClass mxl-domain-sc"]
+    B["2 - Kubernetes sees a Pending PVC for mxl.csi.k8s.local"]
+    C["3 - csi-provisioner calls CreateVolume over gRPC"]
+    D["4 - mxl-csi controller acknowledges the volume"]
+    E["5 - VolumeContext returns sharedHostPath, requestedBytes, flowCleanupPolicy"]
+    F["6 - PersistentVolume is created and bound to the PVC"]
+    G["7 - Pod is scheduled and kubelet resolves the bound PV"]
+    H["8 - kubelet calls NodePublishVolume on the node CSI socket"]
+    I{"9 - domain_def.json present on this node?"}
+    J["10a - First publish creates domain path, mounts tmpfs, sets permissions, writes domain_def.json"]
+    K["10b - Existing domain remounts tmpfs if active PVC sizes grew"]
+    L["11 - Bind mount /run/mxl/domain into the pod volume target path"]
+    M["12 - Pod runs with the shared MXL tmpfs ring buffer mounted"]
 
     A --> B --> C --> D --> E --> F --> G --> H --> I
     I -- no --> J
@@ -88,9 +88,9 @@ sequenceDiagram
     K8s->>Kubelet: Pod scheduled with PVC
     Kubelet->>Node: NodeStageVolume, no-op
     Kubelet->>Node: NodePublishVolume with volumeId and targetPath
-    Node->>Node: load state, publishCount++,<br/>snapshot baseline flows
+    Node->>Node: load state, increment publishCount, snapshot baseline flows
     alt domain_def.json absent
-        Node->>Host: mkdir + mount tmpfs, chown 1000:1000,<br/>chmod 0775, write domain_def.json
+        Node->>Host: mkdir, mount tmpfs, chown, chmod, write domain_def.json
     else already set up
         Node->>Host: remount with aggregate size if grown
     end
@@ -106,14 +106,14 @@ sequenceDiagram
 
     K8s->>Kubelet: Pod deleted
     Kubelet->>Node: NodeUnpublishVolume with volumeId and targetPath
-    Node->>Node: umount targetPath, publishCount--
+    Node->>Node: umount targetPath, decrement publishCount
     alt publishCount is 0 and policy onLastUnpublish or deleting
-        Node->>Host: delete flows created by this volume,<br/>drop volume from state
+        Node->>Host: delete volume flows and drop volume from state
     end
 
     opt PVC deleted
         K8s->>Ctrl: DeleteVolume with volumeId
-        Ctrl->>Ctrl: mark deleting then if publishCount is 0<br/>cleanup flows and drop state entry
+        Ctrl->>Ctrl: mark deleting, then clean up if publishCount is 0
     end
 ```
 
