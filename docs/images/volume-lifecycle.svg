@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1220" viewBox="0 0 1400 1220" role="img" aria-labelledby="title desc">
+  <title id="title">MXL CSI volume lifecycle</title>
+  <desc id="desc">PVC provisioning, node publish, optional expansion, unpublish cleanup, and delete cleanup.</desc>
+  <style>
+    .title { font: 700 30px Helvetica, Arial, sans-serif; fill: #0f172a; }
+    .section { font: 700 16px Helvetica, Arial, sans-serif; fill: #334155; letter-spacing: .06em; }
+    .label { font: 700 18px Helvetica, Arial, sans-serif; fill: #0f172a; }
+    .small { font: 500 15px Helvetica, Arial, sans-serif; fill: #475569; }
+    .node { stroke-width: 2; rx: 14; }
+    .k8s { fill: #dbeafe; stroke: #2563eb; }
+    .controller { fill: #ede9fe; stroke: #7c3aed; }
+    .nodeSvc { fill: #dcfce7; stroke: #16a34a; }
+    .host { fill: #ffedd5; stroke: #ea580c; }
+    .cleanup { fill: #fef9c3; stroke: #ca8a04; }
+    .edge { stroke: #334155; stroke-width: 2; fill: none; }
+    .arrow { fill: #334155; }
+  </style>
+
+  <rect width="1400" height="1220" fill="#ffffff" />
+  <text x="700" y="54" text-anchor="middle" class="title">MXL CSI Volume Lifecycle</text>
+
+  <text x="120" y="112" class="section">PROVISION</text>
+  <rect x="120" y="135" width="500" height="78" class="node k8s" />
+  <text x="370" y="166" text-anchor="middle" class="label">PVC created</text>
+  <text x="370" y="191" text-anchor="middle" class="small">Kubernetes PVC references StorageClass mxl-domain-sc</text>
+
+  <rect x="780" y="135" width="500" height="78" class="node controller" />
+  <text x="1030" y="166" text-anchor="middle" class="label">CreateVolume handled</text>
+  <text x="1030" y="191" text-anchor="middle" class="small">csi-provisioner calls the mxl-csi controller</text>
+
+  <rect x="450" y="265" width="500" height="78" class="node k8s" />
+  <text x="700" y="296" text-anchor="middle" class="label">PV bound</text>
+  <text x="700" y="321" text-anchor="middle" class="small">Volume id, capacity, and context bind the PV to the PVC</text>
+
+  <text x="120" y="420" class="section">PUBLISH</text>
+  <rect x="120" y="443" width="500" height="78" class="node k8s" />
+  <text x="370" y="474" text-anchor="middle" class="label">Pod scheduled</text>
+  <text x="370" y="499" text-anchor="middle" class="small">kubelet resolves the bound PersistentVolume</text>
+
+  <rect x="780" y="443" width="500" height="78" class="node nodeSvc" />
+  <text x="1030" y="474" text-anchor="middle" class="label">NodePublishVolume</text>
+  <text x="1030" y="499" text-anchor="middle" class="small">node service loads state and records publisher activity</text>
+
+  <rect x="120" y="573" width="500" height="78" class="node host" />
+  <text x="370" y="604" text-anchor="middle" class="label">Domain setup</text>
+  <text x="370" y="629" text-anchor="middle" class="small">create path, mount tmpfs, chown, chmod, write domain_def.json</text>
+
+  <rect x="780" y="573" width="500" height="78" class="node nodeSvc" />
+  <text x="1030" y="604" text-anchor="middle" class="label">Bind mount target</text>
+  <text x="1030" y="629" text-anchor="middle" class="small">/run/mxl/domain is mounted into the pod volume path</text>
+
+  <text x="120" y="728" class="section">EXPAND</text>
+  <rect x="120" y="751" width="500" height="78" class="node controller" />
+  <text x="370" y="782" text-anchor="middle" class="label">ControllerExpandVolume</text>
+  <text x="370" y="807" text-anchor="middle" class="small">controller reports that node expansion is required</text>
+
+  <rect x="780" y="751" width="500" height="78" class="node host" />
+  <text x="1030" y="782" text-anchor="middle" class="label">NodeExpandVolume</text>
+  <text x="1030" y="807" text-anchor="middle" class="small">tmpfs is remounted to the active PVC size total</text>
+
+  <text x="120" y="906" class="section">UNPUBLISH AND DELETE</text>
+  <rect x="120" y="929" width="500" height="78" class="node nodeSvc" />
+  <text x="370" y="960" text-anchor="middle" class="label">NodeUnpublishVolume</text>
+  <text x="370" y="985" text-anchor="middle" class="small">target path is unmounted and publish count decreases</text>
+
+  <rect x="780" y="929" width="500" height="78" class="node cleanup" />
+  <text x="1030" y="960" text-anchor="middle" class="label">Flow cleanup</text>
+  <text x="1030" y="985" text-anchor="middle" class="small">delete volume flows when final publisher exits or delete policy applies</text>
+
+  <rect x="450" y="1059" width="500" height="78" class="node controller" />
+  <text x="700" y="1090" text-anchor="middle" class="label">DeleteVolume</text>
+  <text x="700" y="1115" text-anchor="middle" class="small">controller marks deleting and drops state after cleanup</text>
+
+  <path d="M 620 174 H 780" class="edge" />
+  <polygon points="780,174 766,166 766,182" class="arrow" />
+  <path d="M 1030 213 C 1030 246 950 304 950 304" class="edge" />
+  <polygon points="950,304 964,296 964,312" class="arrow" />
+  <path d="M 700 343 C 700 386 370 400 370 443" class="edge" />
+  <polygon points="370,443 362,429 378,429" class="arrow" />
+  <path d="M 620 482 H 780" class="edge" />
+  <polygon points="780,482 766,474 766,490" class="arrow" />
+  <path d="M 1030 521 C 1030 558 370 536 370 573" class="edge" />
+  <polygon points="370,573 362,559 378,559" class="arrow" />
+  <path d="M 620 612 H 780" class="edge" />
+  <polygon points="780,612 766,604 766,620" class="arrow" />
+  <path d="M 1030 651 C 1030 704 370 698 370 751" class="edge" />
+  <polygon points="370,751 362,737 378,737" class="arrow" />
+  <path d="M 620 790 H 780" class="edge" />
+  <polygon points="780,790 766,782 766,798" class="arrow" />
+  <path d="M 1030 829 C 1030 890 370 868 370 929" class="edge" />
+  <polygon points="370,929 362,915 378,915" class="arrow" />
+  <path d="M 620 968 H 780" class="edge" />
+  <polygon points="780,968 766,960 766,976" class="arrow" />
+  <path d="M 1030 1007 C 1030 1044 950 1098 950 1098" class="edge" />
+  <polygon points="950,1098 964,1090 964,1106" class="arrow" />
+</svg>

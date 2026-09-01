@@ -30,77 +30,11 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 
 ### Provisioning Workflow
 
-```mermaid
-flowchart TD
-    A["1 - Pod requests PVC using StorageClass mxl-domain-sc"]
-    B["2 - Kubernetes sees a Pending PVC for mxl.csi.k8s.local"]
-    C["3 - csi-provisioner calls CreateVolume over gRPC"]
-    D["4 - mxl-csi controller acknowledges the volume"]
-    E["5 - VolumeContext returns sharedHostPath, requestedBytes, flowCleanupPolicy"]
-    F["6 - PersistentVolume is created and bound to the PVC"]
-    G["7 - Pod is scheduled and kubelet resolves the bound PV"]
-    H["8 - kubelet calls NodePublishVolume on the node CSI socket"]
-    I{"9 - domain_def.json present on this node"}
-    J["10a - First publish creates domain path, mounts tmpfs, sets permissions, writes domain_def.json"]
-    K["10b - Existing domain remounts tmpfs if active PVC sizes grew"]
-    L["11 - Bind mount /run/mxl/domain into the pod volume target path"]
-    M["12 - Pod runs with the shared MXL tmpfs ring buffer mounted"]
-
-    A --> B --> C --> D --> E --> F --> G --> H --> I
-    I -->|no| J
-    I -->|yes| K
-    J --> L
-    K --> L
-    L --> M
-```
+![MXL CSI provisioning workflow](docs/images/provisioning-workflow.png)
 
 ### Volume Lifecycle
 
-```mermaid
-sequenceDiagram
-    participant K8S as Kubernetes PVC and Pod
-    participant PROV as csi-provisioner
-    participant CTRL as mxl-csi controller
-    participant KUBELET as kubelet
-    participant CSI as mxl-csi node service
-    participant HOST as Host domain path
-
-    K8S->>PROV: PVC created with StorageClass mxl-domain-sc
-    PROV->>CTRL: CreateVolume with name and capacity
-    CTRL-->>PROV: Volume id, capacity, volumeContext
-    PROV-->>K8S: PV bound, no backend allocation
-
-    K8S->>KUBELET: Pod scheduled with PVC
-    KUBELET->>CSI: NodeStageVolume, no-op
-    KUBELET->>CSI: NodePublishVolume with volumeId and targetPath
-    CSI->>CSI: load state, increment publishCount, snapshot baseline flows
-    alt domain_def.json absent
-        CSI->>HOST: mkdir, mount tmpfs, chown, chmod, write domain_def.json
-    else already set up
-        CSI->>HOST: remount with aggregate size if grown
-    end
-    CSI->>KUBELET: bind mount shared domain path to targetPath
-    KUBELET-->>K8S: Pod running with shared tmpfs mounted
-
-    opt PVC resized
-        K8S->>CTRL: ControllerExpandVolume
-        CTRL-->>K8S: NodeExpansionRequired is true
-        KUBELET->>CSI: NodeExpandVolume
-        CSI->>HOST: remount tmpfs to sum of active PVC sizes
-    end
-
-    K8S->>KUBELET: Pod deleted
-    KUBELET->>CSI: NodeUnpublishVolume with volumeId and targetPath
-    CSI->>CSI: umount targetPath, decrement publishCount
-    alt publishCount is 0 and policy onLastUnpublish or deleting
-        CSI->>HOST: delete volume flows and drop volume from state
-    end
-
-    opt PVC deleted
-        K8S->>CTRL: DeleteVolume with volumeId
-        CTRL->>CTRL: mark deleting, then clean up if publishCount is 0
-    end
-```
+![MXL CSI volume lifecycle](docs/images/volume-lifecycle.png)
 
 ### CSI Implementation Notes
 
