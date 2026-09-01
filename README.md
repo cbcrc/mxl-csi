@@ -30,7 +30,7 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 
 ### Provisioning Workflow
 
-![MXL CSI provisioning workflow](docs/images/provisioning-workflow.png)
+<img src="docs/images/provisioning-workflow.png" alt="MXL CSI provisioning workflow" width="70%" />
 
 ### Volume Lifecycle
 
