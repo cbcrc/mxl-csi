@@ -31,7 +31,6 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 ### Provisioning Workflow
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#0f172a", "fontFamily": "Segoe UI, Helvetica, sans-serif", "fontSize": "14px", "lineColor": "#94a3b8", "primaryTextColor": "#0f172a", "edgeLabelBackground": "#e2e8f0", "textColor": "#0f172a"}}}%%
 flowchart TD
     A["1 - Pod requests storage<br/>PVC references StorageClass mxl-domain-sc<br/>provisioner: mxl.csi.k8s.local"]
     B["2 - kube-controller-manager sees<br/>a Pending PVC for this provisioner"]
@@ -56,14 +55,14 @@ flowchart TD
 
     classDef k8s fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
     classDef controller fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#4c1d95
-    classDef node fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
+    classDef nodesvc fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
     classDef host fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#7c2d12
     classDef decision fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#713f12
     classDef done fill:#cffafe,stroke:#0891b2,stroke-width:3px,color:#164e63
 
     class A,B,F,G k8s
     class C,D,E controller
-    class H,L node
+    class H,L nodesvc
     class J,K host
     class I decision
     class M done
@@ -72,7 +71,6 @@ flowchart TD
 ### Volume Lifecycle
 
 ```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#0f172a", "fontFamily": "Segoe UI, Helvetica, sans-serif", "fontSize": "14px", "actorBkg": "#dbeafe", "actorBorder": "#2563eb", "actorTextColor": "#1e3a8a", "actorLineColor": "#94a3b8", "signalColor": "#e2e8f0", "signalTextColor": "#e2e8f0", "labelBoxBkgColor": "#fef9c3", "labelBoxBorderColor": "#ca8a04", "labelTextColor": "#713f12", "loopTextColor": "#e2e8f0", "noteBkgColor": "#ffedd5", "noteBorderColor": "#ea580c", "noteTextColor": "#7c2d12", "activationBkgColor": "#dcfce7", "activationBorderColor": "#16a34a", "sequenceNumberColor": "#0f172a"}}}%%
 sequenceDiagram
     autonumber
     participant K8s as Kubernetes PVC/Pod
