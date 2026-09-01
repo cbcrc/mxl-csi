@@ -40,80 +40,65 @@ flowchart TD
     F["6 - PersistentVolume is created and bound to the PVC"]
     G["7 - Pod is scheduled and kubelet resolves the bound PV"]
     H["8 - kubelet calls NodePublishVolume on the node CSI socket"]
-    I{"9 - domain_def.json present on this node?"}
+    I{"9 - domain_def.json present on this node"}
     J["10a - First publish creates domain path, mounts tmpfs, sets permissions, writes domain_def.json"]
     K["10b - Existing domain remounts tmpfs if active PVC sizes grew"]
     L["11 - Bind mount /run/mxl/domain into the pod volume target path"]
     M["12 - Pod runs with the shared MXL tmpfs ring buffer mounted"]
 
     A --> B --> C --> D --> E --> F --> G --> H --> I
-    I -- no --> J
-    I -- yes --> K
+    I -->|no| J
+    I -->|yes| K
     J --> L
     K --> L
     L --> M
-
-    classDef k8s fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
-    classDef controller fill:#ede9fe,stroke:#7c3aed,stroke-width:2px,color:#4c1d95
-    classDef nodesvc fill:#dcfce7,stroke:#16a34a,stroke-width:2px,color:#14532d
-    classDef host fill:#ffedd5,stroke:#ea580c,stroke-width:2px,color:#7c2d12
-    classDef decision fill:#fef9c3,stroke:#ca8a04,stroke-width:2px,color:#713f12
-    classDef done fill:#cffafe,stroke:#0891b2,stroke-width:3px,color:#164e63
-
-    class A,B,F,G k8s
-    class C,D,E controller
-    class H,L nodesvc
-    class J,K host
-    class I decision
-    class M done
 ```
 
 ### Volume Lifecycle
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    participant K8s as Kubernetes PVC/Pod
-    participant Prov as csi-provisioner
-    participant Ctrl as mxl-csi controller
-    participant Kubelet as kubelet
-    participant Node as mxl-csi node service
-    participant Host as Host domain path
+    participant K8S as Kubernetes PVC and Pod
+    participant PROV as csi-provisioner
+    participant CTRL as mxl-csi controller
+    participant KUBELET as kubelet
+    participant CSI as mxl-csi node service
+    participant HOST as Host domain path
 
-    K8s->>Prov: PVC created with StorageClass mxl-domain-sc
-    Prov->>Ctrl: CreateVolume with name and capacity
-    Ctrl-->>Prov: Volume id, capacity, volumeContext
-    Prov-->>K8s: PV bound, no backend allocation
+    K8S->>PROV: PVC created with StorageClass mxl-domain-sc
+    PROV->>CTRL: CreateVolume with name and capacity
+    CTRL-->>PROV: Volume id, capacity, volumeContext
+    PROV-->>K8S: PV bound, no backend allocation
 
-    K8s->>Kubelet: Pod scheduled with PVC
-    Kubelet->>Node: NodeStageVolume, no-op
-    Kubelet->>Node: NodePublishVolume with volumeId and targetPath
-    Node->>Node: load state, increment publishCount, snapshot baseline flows
+    K8S->>KUBELET: Pod scheduled with PVC
+    KUBELET->>CSI: NodeStageVolume, no-op
+    KUBELET->>CSI: NodePublishVolume with volumeId and targetPath
+    CSI->>CSI: load state, increment publishCount, snapshot baseline flows
     alt domain_def.json absent
-        Node->>Host: mkdir, mount tmpfs, chown, chmod, write domain_def.json
+        CSI->>HOST: mkdir, mount tmpfs, chown, chmod, write domain_def.json
     else already set up
-        Node->>Host: remount with aggregate size if grown
+        CSI->>HOST: remount with aggregate size if grown
     end
-    Node->>Kubelet: bind mount shared domain path to targetPath
-    Kubelet-->>K8s: Pod running with shared tmpfs mounted
+    CSI->>KUBELET: bind mount shared domain path to targetPath
+    KUBELET-->>K8S: Pod running with shared tmpfs mounted
 
     opt PVC resized
-        K8s->>Ctrl: ControllerExpandVolume
-        Ctrl-->>K8s: NodeExpansionRequired is true
-        Kubelet->>Node: NodeExpandVolume
-        Node->>Host: remount tmpfs to sum of active PVC sizes
+        K8S->>CTRL: ControllerExpandVolume
+        CTRL-->>K8S: NodeExpansionRequired is true
+        KUBELET->>CSI: NodeExpandVolume
+        CSI->>HOST: remount tmpfs to sum of active PVC sizes
     end
 
-    K8s->>Kubelet: Pod deleted
-    Kubelet->>Node: NodeUnpublishVolume with volumeId and targetPath
-    Node->>Node: umount targetPath, decrement publishCount
+    K8S->>KUBELET: Pod deleted
+    KUBELET->>CSI: NodeUnpublishVolume with volumeId and targetPath
+    CSI->>CSI: umount targetPath, decrement publishCount
     alt publishCount is 0 and policy onLastUnpublish or deleting
-        Node->>Host: delete volume flows and drop volume from state
+        CSI->>HOST: delete volume flows and drop volume from state
     end
 
     opt PVC deleted
-        K8s->>Ctrl: DeleteVolume with volumeId
-        Ctrl->>Ctrl: mark deleting, then clean up if publishCount is 0
+        K8S->>CTRL: DeleteVolume with volumeId
+        CTRL->>CTRL: mark deleting, then clean up if publishCount is 0
     end
 ```
 
