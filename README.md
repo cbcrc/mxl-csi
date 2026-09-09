@@ -1,4 +1,4 @@
-# ti-eng-mxl-k8s-csi
+# mxl-csi
 CSI driver for dynamic mxl tmpfs lifecycle, mount binding, and PVC-aware scaling
 
 ## Overview
@@ -38,7 +38,7 @@ This driver is **not a traditional dynamic provisioner** that allocates isolated
 
 ### CSI Implementation Notes
 
-- **Driver identity**: Defaults to name `mxl.csi.k8s.local`, version `0.2.5` (see `defaultDriverVersion` in `cmd/mxl-csi/main.go`).
+- **Driver identity**: Defaults to name `mxl.csi.cbcrc.ca`, version `0.2.6` (see `defaultDriverVersion` in `cmd/mxl-csi/main.go`).
 - **Shared host path**: Defaults to `/run/mxl/domain`, configurable via `--shared-host-path` (or `MXL_SHARED_HOST_PATH`).
 - **Identity service**: Advertises controller service capability.
 - **Controller service**: Advertises `CREATE_DELETE_VOLUME` and `EXPAND_VOLUME` capabilities for PVC lifecycle and expansion workflows.
@@ -58,7 +58,7 @@ Version `0.2.0` merges core functionality that previously required the standalon
 
 ### Upgrade Notes (0.1.x -> 0.2.x)
 
-- Driver default version is now `0.2.5`.
+- Driver default version is now `0.2.6`.
 - Domain lifecycle behavior is merged into CSI node operations.
 - The driver can create `/run/mxl/domain` and mount tmpfs on first publish.
 - The standalone bootstrap DaemonSet becomes optional for CSI-based workflows.
@@ -92,7 +92,7 @@ Operational guidance:
 ## Repository Structure
 
 ```text
-ti-eng-mxl-k8s-csi/
+mxl-csi/
 ├── cmd/
 │   └── mxl-csi/                     # main entrypoint
 ├── build/
@@ -122,7 +122,7 @@ For full prerequisites and installation commands, see:
 ## Test Scenarios
 
 This repository contains two end-to-end test folders that validate the same MXL media flow behavior with different storage approaches.
-Together, these scenarios are designed to validate both the mxl-k8s-csi driver behavior and the Qvest mxl-k8s operator flow/mirror reconciliation behavior.
+Together, these scenarios are designed to validate both the mxl-csi driver behavior and the Qvest mxl-k8s operator flow/mirror reconciliation behavior.
 
 ### Scenario 1: Static PV/PVC Wiring (qvest-mxl-k8s-test)
 
@@ -149,7 +149,7 @@ Use [tests/csi-test/README.md](tests/csi-test/README.md) when you want to valida
 
 Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are already available in GHCR:
 
-- [`ghcr.io/cbcrc-ea/mxl-k8s-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/mxl-k8s-csi)
+- [`ghcr.io/cbcrc-ea/mxl-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/mxl-csi)
 
 If you wish to build images locally instead, use the steps below.
 
@@ -162,20 +162,20 @@ Build with Docker:
 
 ```bash
 # Alpine-based image (default Dockerfile)
-docker build -f build/docker/Dockerfile -t ti-eng-mxl-k8s-csi:alpine .
+docker build -f build/docker/Dockerfile -t mxl-csi:alpine .
 
 # UBI-based image (explicit Dockerfile)
-docker build -f build/docker/Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
+docker build -f build/docker/Dockerfile.ubi -t mxl-csi:ubi .
 ```
 
 Build with Podman:
 
 ```bash
 # Alpine-based image
-podman build -f build/docker/Dockerfile -t ti-eng-mxl-k8s-csi:alpine .
+podman build -f build/docker/Dockerfile -t mxl-csi:alpine .
 
 # UBI-based image
-podman build -f build/docker/Dockerfile.ubi -t ti-eng-mxl-k8s-csi:ubi .
+podman build -f build/docker/Dockerfile.ubi -t mxl-csi:ubi .
 ```
 
 ## OpenShift Tag and Push Example
@@ -184,10 +184,14 @@ Replace `quay.io/<org>` with your registry namespace:
 
 ```bash
 # Example with Docker
-docker tag ti-eng-mxl-k8s-csi:ubi quay.io/<org>/ti-eng-mxl-k8s-csi:ubi
-docker push quay.io/<org>/ti-eng-mxl-k8s-csi:ubi
+docker tag mxl-csi:ubi quay.io/<org>/mxl-csi:ubi
+docker push quay.io/<org>/mxl-csi:ubi
 
 # Example with Podman
-podman tag ti-eng-mxl-k8s-csi:ubi quay.io/<org>/ti-eng-mxl-k8s-csi:ubi
-podman push quay.io/<org>/ti-eng-mxl-k8s-csi:ubi
+podman tag mxl-csi:ubi quay.io/<org>/mxl-csi:ubi
+podman push quay.io/<org>/mxl-csi:ubi
 ```
+
+## License
+
+This project is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

@@ -32,7 +32,7 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/mxl-k8s-csi
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/mxl-csi
 
 jobs:
   build-and-publish:

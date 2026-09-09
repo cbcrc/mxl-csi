@@ -1,7 +1,7 @@
 # qvest-mxl-k8s-test: Cross-Node MXL Flow Sharing Validation
 
 This folder contains a full test scenario to validate cross-node sharing of MXL flows in Kubernetes using Qvest's `mxl-k8s` operator.
-This scenario is also part of the broader validation strategy for the mxl-k8s-csi project by providing the static-PV baseline behavior.
+This scenario is also part of the broader validation strategy for the mxl-csi project by providing the static-PV baseline behavior.
 
 ## Prerequisites
 
@@ -142,7 +142,7 @@ This test currently uses statically declared local PVs/PVCs for each node. That 
 
 ## Migration To CSI StorageClass
 
-When you migrate this test to the CSI workflow (StorageClass provisioner `mxl.csi.k8s.local`), the static local PV wiring is no longer needed.
+When you migrate this test to the CSI workflow (StorageClass provisioner `mxl.csi.cbcrc.ca`), the static local PV wiring is no longer needed.
 
 You can remove these static manifests:
 

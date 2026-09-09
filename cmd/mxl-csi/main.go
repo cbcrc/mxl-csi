@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	defaultDriverName    = "mxl.csi.k8s.local"
-	defaultDriverVersion = "0.2.5"
+	defaultDriverName    = "mxl.csi.cbcrc.ca"
+	defaultDriverVersion = "0.2.6"
 	defaultEndpoint      = "unix:///csi/csi.sock"
 	defaultSharedPath    = "/run/mxl/domain"
 
