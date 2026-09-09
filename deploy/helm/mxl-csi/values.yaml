@@ -2,13 +2,13 @@ nameOverride: ""
 fullnameOverride: ""
 
 driver:
-  name: mxl.csi.k8s.local
+  name: mxl.csi.cbcrc.ca
   endpoint: unix:///csi/csi.sock
   sharedHostPath: /run/mxl/domain
 
 image:
-  repository: ghcr.io/cbcrc-ea/mxl-k8s-csi
-  tag: "0.2.5"
+  repository: ghcr.io/cbcrc-ea/mxl-csi
+  tag: "0.2.6"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

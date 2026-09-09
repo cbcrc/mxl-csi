@@ -34,8 +34,8 @@ Run the following commands from the repository root.
 helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
-  --set image.repository=ghcr.io/cbcrc-ea/mxl-k8s-csi \
-  --set image.tag=0.2.5
+  --set image.repository=ghcr.io/cbcrc-ea/mxl-csi \
+  --set image.tag=0.2.6
 ```
 
 The CSI driver now includes merged domain lifecycle behavior (create/mount `/run/mxl/domain` tmpfs and grow on-demand), so the bootstrap DaemonSet is optional unless you want a pre-provisioned host setup.
@@ -47,8 +47,8 @@ helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
   -f ./deploy/helm/mxl-csi/values-preprod.yaml \
-  --set image.repository=ghcr.io/cbcrc-ea/mxl-k8s-csi \
-  --set image.tag=0.2.5
+  --set image.repository=ghcr.io/cbcrc-ea/mxl-csi \
+  --set image.tag=0.2.6
 ```
 
 ## Verify
@@ -74,7 +74,7 @@ This is a pod-level `securityContext` field — it adds `gid 1000` to the contai
 ## Common overrides
 
 ```bash
---set driver.name=mxl.csi.k8s.local
+--set driver.name=mxl.csi.cbcrc.ca
 --set storageClass.name=mxl-domain-sc
 --set driver.sharedHostPath=/run/mxl/domain
 ```

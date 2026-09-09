@@ -3,4 +3,4 @@ name: mxl-csi
 description: CSI driver for MXL shared-host-path volumes
 type: application
 version: 0.2.6
-appVersion: "0.2.5"
+appVersion: "0.2.6"

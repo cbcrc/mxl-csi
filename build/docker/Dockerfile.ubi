@@ -1,19 +1,19 @@
 # syntax=docker/dockerfile:1
 
-FROM golang:1.26-alpine AS builder
+FROM golang:1.26.6-alpine AS builder
 WORKDIR /src
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/ti-eng-mxl-k8s-csi ./cmd/mxl-csi
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/mxl-csi ./cmd/mxl-csi
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8
 
 # mount/umount are required by NodePublishVolume and NodeUnpublishVolume.
 RUN microdnf install -y util-linux && microdnf clean all
 
-COPY --from=builder /out/ti-eng-mxl-k8s-csi /usr/local/bin/ti-eng-mxl-k8s-csi
+COPY --from=builder /out/mxl-csi /usr/local/bin/mxl-csi
 
-ENTRYPOINT ["/usr/local/bin/ti-eng-mxl-k8s-csi"]
+ENTRYPOINT ["/usr/local/bin/mxl-csi"]
