@@ -7,7 +7,7 @@ driver:
   sharedHostPath: /run/mxl/domain
 
 image:
-  repository: ghcr.io/cbcrc-ea/mxl-csi
+  repository: ghcr.io/cbcrc/mxl-csi
   tag: "0.2.6"
   pullPolicy: IfNotPresent
 
