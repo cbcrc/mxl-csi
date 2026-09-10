@@ -1,4 +1,4 @@
-# LICENCES
+# LICENSES
 
 This repository contains content licensed under two different licenses.
 
