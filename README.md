@@ -199,4 +199,4 @@ podman push quay.io/<org>/mxl-csi:ubi
 
 ## License
 
-This project's code and configuration files are licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0); documentation and media are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [LICENSE.md](LICENSE.md) for details.
+This project's code and configuration files are licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0); documentation and media are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [NOTICE.md](NOTICE.md) for details.
