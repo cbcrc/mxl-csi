@@ -1,8 +1,8 @@
 # mxl-csi
 CSI driver for dynamic mxl tmpfs lifecycle, mount binding, and PVC-aware scaling
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE-APACHE)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LICENSE-CC-BY-4.0)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE.Apache-2.0)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LICENSE.CC-BY-4.0)
 
 > **⚠️ Experimental project**: This is an experimental, community-style effort and is not an officially supported product. There is no guaranteed maintenance, support, or SLA. Please validate thoroughly before relying on it in any production environment.
 
@@ -199,4 +199,4 @@ podman push quay.io/<org>/mxl-csi:ubi
 
 ## License
 
-This project's code and configuration files are licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0); documentation and media are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [NOTICE.md](NOTICE.md) for details.
+This project's code and configuration files are licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0); documentation and media are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [LICENSE.md](LICENSE.md) for details.
