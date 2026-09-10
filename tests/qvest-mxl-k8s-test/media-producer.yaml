@@ -5,7 +5,7 @@ metadata:
   namespace: qvest-mxl-test
 spec:
   nodeSelector:
-    kubernetes.io/hostname: mtllppdmh001
+    kubernetes.io/hostname: <nodeName>
   securityContext:
     supplementalGroups: [1000]
   initContainers:
