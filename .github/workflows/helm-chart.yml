@@ -35,7 +35,7 @@ jobs:
           helm package "$CHART_DIR" --destination dist
 
       - name: Upload packaged chart artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mxl-csi-chart
           path: dist/*.tgz
