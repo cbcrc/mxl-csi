@@ -68,7 +68,7 @@ spec:
         app.kubernetes.io/name: mxl-mediamtx 
     spec: 
       nodeSelector: 
-        kubernetes.io/hostname: mtllppdmh002 
+        kubernetes.io/hostname: <nodeName>
       volumes: 
         - name: config 
           configMap: 
