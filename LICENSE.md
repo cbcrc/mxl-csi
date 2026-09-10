@@ -14,7 +14,7 @@ All code and configuration files are licensed under the Apache License, Version 
 - JSON files (`.json`)
 - Git configuration files (`.gitignore`, `.gitmodules`)
 
-A full copy of this license is available in the top-level [LICENSE](../LICENSE) file.
+A full copy of this license is available in the [licenses/Apache-2.0.txt](./licenses/Apache-2.0.txt) file.
 
 ## Documentation and Media
 
@@ -22,4 +22,4 @@ All documentation and media files are licensed under the Creative Commons Attrib
 - Markdown files (`.md`)
 - Image files and videos (`.jpg`, `.png`, `.ts`, etc.)
 
-A full copy of this license is available in the [CC-BY-4.0.txt](./CC-BY-4.0.txt) file.
+A full copy of this license is available in the [licenses/CC-BY-4.0.txt](./licenses/CC-BY-4.0.txt) file.
