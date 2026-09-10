@@ -149,7 +149,7 @@ Use [tests/csi-test/README.md](tests/csi-test/README.md) when you want to valida
 
 Prebuilt multi-architecture images for `linux/amd64` and `linux/arm64` are already available in GHCR:
 
-- [`ghcr.io/cbcrc-ea/mxl-csi`](https://github.com/orgs/cbcrc-ea/packages/container/package/mxl-csi)
+- [`ghcr.io/cbcrc/mxl-csi`](https://github.com/orgs/cbcrc/packages/container/package/mxl-csi)
 
 If you wish to build images locally instead, use the steps below.
 
@@ -194,4 +194,4 @@ podman push quay.io/<org>/mxl-csi:ubi
 
 ## License
 
-This project is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+This project's code and configuration files are licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0); documentation and media are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See [Licenses/LICENSE.md](Licenses/LICENSE.md) for details.
