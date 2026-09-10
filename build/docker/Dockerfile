@@ -9,7 +9,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/mxl-csi ./cmd/mxl-csi
 
-FROM alpine:3.20
+FROM alpine:3.24
 
 # mount/umount are required by NodePublishVolume and NodeUnpublishVolume.
 RUN apk add --no-cache util-linux
