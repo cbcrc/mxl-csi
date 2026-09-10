@@ -7,7 +7,7 @@ toolchain go1.26.6
 require (
 	github.com/container-storage-interface/spec v1.13.0
 	google.golang.org/grpc v1.82.1
-	google.golang.org/protobuf v1.36.11
+	google.golang.org/protobuf v1.36.12
 )
 
 require (
