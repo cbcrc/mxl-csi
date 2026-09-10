@@ -20,4 +20,4 @@ spec:
       - matchExpressions:
         - key: kubernetes.io/hostname
           operator: In
-          values: [mtllppdmh001] 
+          values: [<nodeName>] 

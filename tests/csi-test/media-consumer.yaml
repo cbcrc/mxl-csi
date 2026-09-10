@@ -14,7 +14,7 @@ spec:
         app.kubernetes.io/name: mxl-k8s-video-flow-reader
     spec:
       nodeSelector:
-        kubernetes.io/hostname: mtllppdmh002
+        kubernetes.io/hostname:
       securityContext:
         supplementalGroups: [1000]
       volumes:

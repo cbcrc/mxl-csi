@@ -31,18 +31,18 @@ Validate that:
   - This is host-level lifecycle setup for the MXL domain path.
 
 - [mxl-domain-pv.yaml](mxl-domain-pv.yaml)
-  - Static `PersistentVolume` for node `mtllppdmh002`.
+  - Static `PersistentVolume` for node `2`.
   - Maps local path `/run/mxl/domain` with node affinity.
 
 - [mxl-domain-pv-1.yaml](mxl-domain-pv-1.yaml)
-  - Static `PersistentVolume` for node `mtllppdmh001`.
+  - Static `PersistentVolume` for node `1`.
   - Maps local path `/run/mxl/domain` with node affinity.
 
 - [mxl-domain-pvc.yaml](mxl-domain-pvc.yaml)
-  - PVC bound to `mxl-domain-pv` (consumer side/node `mtllppdmh002`).
+  - PVC bound to `mxl-domain-pv` (consumer side/node `2`).
 
 - [mxl-domain-pvc-1.yaml](mxl-domain-pvc-1.yaml)
-  - PVC bound to `mxl-domain-pv-1` (producer side/node `mtllppdmh001`).
+  - PVC bound to `mxl-domain-pv-1` (producer side/node `1`).
 
 ### Flow Definition and Operator Signaling
 
@@ -60,13 +60,13 @@ Validate that:
 ### Producer and Consumer Workloads
 
 - [media-producer.yaml](media-producer.yaml)
-  - Producer pod pinned to node `mtllppdmh001`.
+  - Producer pod pinned to node `1`.
   - Mounts producer PVC at `/run/mxl/domain`.
   - Runs `mxl-gst-testsrc` (GStreamer) with flow metadata from `flow.json`.
   - Init container removes stale flow directory before startup.
 
 - [media-consumer.yaml](media-consumer.yaml)
-  - Consumer deployment pinned to node `mtllppdmh002`.
+  - Consumer deployment pinned to node `2`.
   - Mounts consumer PVC at `/run/mxl/domain`.
   - FFmpeg-based app reads the mirrored MXL flow and publishes RTSP to internal MediaMTX service.
 

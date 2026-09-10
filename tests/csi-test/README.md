@@ -19,7 +19,7 @@ Unlike the static PV and PVC manifests in qvest-mxl-k8s-test, the csi-test manif
   - Provides the flow ID and media description used by the producer and receiver flow logic.
 
 - media-producer.yaml
-  - Producer pod pinned to node mtllppdmh001.
+  - Producer pod pinned to node 1.
   - Uses a CSI-provisioned ephemeral PVC (StorageClass mxl-domain-sc) mounted at /run/mxl/domain.
   - Runs mxl-gst-testsrc to generate the source MXL flow.
 
@@ -28,7 +28,7 @@ Unlike the static PV and PVC manifests in qvest-mxl-k8s-test, the csi-test manif
   - Selects the consumer workload by label and triggers operator mirror/reconciliation behavior.
 
 - media-consumer.yaml
-  - Consumer deployment pinned to node mtllppdmh002.
+  - Consumer deployment pinned to node 2.
   - Uses a CSI-provisioned ephemeral PVC (StorageClass mxl-domain-sc) mounted at /run/mxl/domain.
   - Reads the mirrored flow and publishes it to MediaMTX over RTSP.
 

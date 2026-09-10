@@ -39,8 +39,8 @@ spec:
           # Read black01 IP from /proc/net/fib_trie (available without iproute2).
           # Alternatively derive from NODE_NAME since IPs are fixed per node.
           case "${NODE_NAME}" in
-            mtllppdmh001) BIND="10.164.138.254" ;;
-            mtllppdmh002) BIND="10.164.138.252" ;;
+            mtllppdmh001) BIND="<IPAddress>" ;;
+            mtllppdmh002) BIND="<IPAddress>" ;;
             *)
               echo "ERROR: unknown node ${NODE_NAME}, cannot determine black01 IP"
               exit 1
