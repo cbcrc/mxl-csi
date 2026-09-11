@@ -41,7 +41,7 @@ jobs:
               return 1
             fi
 
-            if grep -nEi -- '\b(mtllppdmh[0-9]+|[a-z0-9-]*(corp|internal|dmz|vpn)[a-z0-9-]*)\b' "$file"; then
+            if grep -nEi -- '\b((tor|mtl)[a-z0-9]{9,11}|[a-z0-9-]*(corp|internal|dmz|vpn)[a-z0-9-]*)\b' "$file"; then
               echo "::error file=${file}::Environment-specific hostname or network label found"
               return 1
             fi
