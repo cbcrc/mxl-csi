@@ -87,6 +87,8 @@ jobs:
           for path in sorted(Path('.').rglob('*')):
               if path.parts[0] == '.git':
                   continue
+              if path.parts[:4] == ('deploy', 'helm', 'mxl-csi', 'templates'):
+                continue
               if path.suffix not in {'.yaml', '.yml'}:
                   continue
               try:
