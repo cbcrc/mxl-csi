@@ -1,4 +1,4 @@
 private_ip=10.1.2.3
 fake_token=ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-private_ip_pr_test=10.9.8.7
-fake_token_pr_test=ghp_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+private_ip_pr_test_2=10.9.8.1
+fake_token_pr_test_2=ghp_bbbbbbbbbbbbbbbxbbbbbbbbbbbbbbbbbbbb
