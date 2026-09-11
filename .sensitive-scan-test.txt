@@ -1,3 +1,0 @@
-private_ip=10.9.8.7
-fake_token=ghp_bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
-fake_hostname=mtlabcdefghi
