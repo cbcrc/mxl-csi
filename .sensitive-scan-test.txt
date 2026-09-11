@@ -1,2 +1,0 @@
-private_ip=10.1.2.3
-fake_token=ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
