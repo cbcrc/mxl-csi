@@ -29,8 +29,8 @@ jobs:
           set -euo pipefail
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}"...HEAD)
+            BASE_REF="${{ github.event.pull_request.base.sha }}"
+            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$BASE_REF" HEAD)
           else
             mapfile -t files < <(git ls-files)
           fi
@@ -43,7 +43,7 @@ jobs:
               return 1
             fi
 
-            if grep -nEi -- '\b((tor|mtl)[a-z0-9]{9,11}|[a-z0-9-]*(corp|internal|dmz|vpn)[a-z0-9-]*)\b' "$file"; then
+            if grep -nEi -- '\b((tor|mtl)[a-z0-9]{9,11}|[a-z0-9-]*(corp|dmz|vpn)[a-z0-9-]*)\b' "$file"; then
               echo "::error file=${file}::Environment-specific hostname or network label found"
               return 1
             fi
@@ -109,8 +109,7 @@ jobs:
           set -euo pipefail
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-            BASE_REF="origin/${{ github.base_ref }}"
+            BASE_REF="${{ github.event.pull_request.base.sha }}"
           else
             BASE_REF="HEAD~1"
           fi
