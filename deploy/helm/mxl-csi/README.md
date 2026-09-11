@@ -24,7 +24,7 @@ helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --namespace kube-system \
   --create-namespace \
   --set image.repository=ghcr.io/cbcrc/mxl-csi \
-  --set image.tag=0.2.6
+  --set image.tag=latest
 ```
 
 The CSI driver now includes merged domain lifecycle behavior (create/mount `/run/mxl/domain` tmpfs and grow on-demand), so the bootstrap DaemonSet is optional unless you want a pre-provisioned host setup.
@@ -58,7 +58,7 @@ helm upgrade --install mxl-csi ./deploy/helm/mxl-csi \
   --create-namespace \
   -f ./deploy/helm/mxl-csi/values-custom.yaml \
   --set image.repository=ghcr.io/cbcrc/mxl-csi \
-  --set image.tag=0.2.6
+  --set image.tag=latest
 ```
 
 ## Verify
