@@ -9,7 +9,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags='-s -w' -o /out/mxl-csi ./cmd/mxl-csi
 
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.9
 
 # mount/umount are required by NodePublishVolume and NodeUnpublishVolume.
 RUN microdnf install -y util-linux && microdnf clean all
